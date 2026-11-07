@@ -1,0 +1,9 @@
+NRRD0005
+type: uint16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: uint16_rawle_det.raw
+content: uint16/raw-le/det
+

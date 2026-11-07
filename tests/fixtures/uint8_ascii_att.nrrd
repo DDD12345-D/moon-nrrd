@@ -1,0 +1,8 @@
+NRRD0005
+type: uint8
+dimension: 1
+sizes: 8
+encoding: ascii
+content: uint8/ascii/att
+
+0 1 2 64 127 128 200 255

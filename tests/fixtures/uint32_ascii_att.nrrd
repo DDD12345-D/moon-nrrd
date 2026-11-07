@@ -1,0 +1,8 @@
+NRRD0005
+type: uint32
+dimension: 1
+sizes: 8
+encoding: ascii
+content: uint32/ascii/att
+
+0 1 65536 2147483647 2147483648 3000000000 4000000000 4294967295

@@ -1,0 +1,60 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "DDD12345-D/moon-nrrd"
+
+// Values
+pub fn ascii_to_bytes(String) -> Bytes
+
+pub fn bytes_to_ascii(Bytes) -> String
+
+pub fn decode_data(Bytes, NrrdHeader, budget? : Int32) -> Array[Double] raise NrrdError
+
+pub fn format_directions(Array[Array[Double]?]) -> String
+
+pub fn format_double_list(Array[Double]) -> String
+
+pub fn format_float(Double) -> String
+
+pub fn format_int_value(Double) -> String
+
+pub fn format_opt(String?, none_marker? : String) -> String
+
+pub fn format_string_list(Array[String]) -> String
+
+pub fn normalize_encoding(String) -> String raise NrrdError
+
+pub fn normalize_type(String) -> String raise NrrdError
+
+pub fn parse_header(String) -> NrrdHeader raise NrrdError
+
+pub fn split_header_body(Bytes) -> (Bytes, Bytes) raise NrrdError
+
+pub fn validate_header(NrrdHeader) -> Unit raise NrrdError
+
+// Errors
+pub(all) suberror NrrdError {
+  NrrdError(String)
+}
+
+// Types and methods
+pub(all) struct NrrdHeader {
+  dimension : Int32
+  sizes : Array[Int32]
+  type_name : String
+  encoding : String
+  endian : String?
+  data_file : String?
+  space : String?
+  space_dimension : Int32?
+  space_origin : Array[Double]?
+  space_directions : Array[Array[Double]?]
+  space_units : Array[String]?
+  labels : Array[String]?
+  kinds : Array[String]?
+  content : String?
+  line_skip : Int32
+  byte_skip : Int32
+}
+
+// Type aliases
+
+// Traits

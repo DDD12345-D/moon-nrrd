@@ -1,0 +1,8 @@
+NRRD0005
+type: uint8
+dimension: 1
+sizes: 8
+encoding: ascii
+data file: uint8_ascii_det.txt
+content: uint8/ascii/det
+

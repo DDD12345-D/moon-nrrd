@@ -1,0 +1,8 @@
+NRRD0005
+type: int16
+dimension: 1
+sizes: 8
+encoding: ascii
+data file: int16_ascii_det.txt
+content: int16/ascii/det
+

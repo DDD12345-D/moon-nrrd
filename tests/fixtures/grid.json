@@ -1,0 +1,244 @@
+{
+ "rows": [
+  {
+   "combo_id": "int8/raw-le/att",
+   "sample": "int8_rawle_att.nrrd",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "int8/raw-le/det",
+   "sample": "int8_rawle_det.nhdr",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "int8/raw-be/att",
+   "sample": "int8_rawbe_att.nrrd",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "int8/raw-be/det",
+   "sample": "int8_rawbe_det.nhdr",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "int8/ascii/att",
+   "sample": "int8_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int8/ascii/det",
+   "sample": "int8_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint8/raw-le/att",
+   "sample": "uint8_rawle_att.nrrd",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "uint8/raw-le/det",
+   "sample": "uint8_rawle_det.nhdr",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "uint8/raw-be/att",
+   "sample": "uint8_rawbe_att.nrrd",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "uint8/raw-be/det",
+   "sample": "uint8_rawbe_det.nhdr",
+   "note": "单字节 LE/BE 同义：数据字节与期望值相同，仅 endian 字段不同"
+  },
+  {
+   "combo_id": "uint8/ascii/att",
+   "sample": "uint8_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint8/ascii/det",
+   "sample": "uint8_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "int16/raw-le/att",
+   "sample": "int16_rawle_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int16/raw-le/det",
+   "sample": "int16_rawle_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "int16/raw-be/att",
+   "sample": "int16_rawbe_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int16/raw-be/det",
+   "sample": "int16_rawbe_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "int16/ascii/att",
+   "sample": "int16_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int16/ascii/det",
+   "sample": "int16_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint16/raw-le/att",
+   "sample": "uint16_rawle_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint16/raw-le/det",
+   "sample": "uint16_rawle_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint16/raw-be/att",
+   "sample": "uint16_rawbe_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint16/raw-be/det",
+   "sample": "uint16_rawbe_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint16/ascii/att",
+   "sample": "uint16_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint16/ascii/det",
+   "sample": "uint16_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "int32/raw-le/att",
+   "sample": "int32_rawle_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int32/raw-le/det",
+   "sample": "int32_rawle_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "int32/raw-be/att",
+   "sample": "int32_rawbe_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int32/raw-be/det",
+   "sample": "int32_rawbe_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "int32/ascii/att",
+   "sample": "int32_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "int32/ascii/det",
+   "sample": "int32_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint32/raw-le/att",
+   "sample": "uint32_rawle_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint32/raw-le/det",
+   "sample": "uint32_rawle_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint32/raw-be/att",
+   "sample": "uint32_rawbe_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint32/raw-be/det",
+   "sample": "uint32_rawbe_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "uint32/ascii/att",
+   "sample": "uint32_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "uint32/ascii/det",
+   "sample": "uint32_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "float/raw-le/att",
+   "sample": "float_rawle_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "float/raw-le/det",
+   "sample": "float_rawle_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "float/raw-be/att",
+   "sample": "float_rawbe_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "float/raw-be/det",
+   "sample": "float_rawbe_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "float/ascii/att",
+   "sample": "float_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "float/ascii/det",
+   "sample": "float_ascii_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "double/raw-le/att",
+   "sample": "double_rawle_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "double/raw-le/det",
+   "sample": "double_rawle_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "double/raw-be/att",
+   "sample": "double_rawbe_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "double/raw-be/det",
+   "sample": "double_rawbe_det.nhdr",
+   "note": ""
+  },
+  {
+   "combo_id": "double/ascii/att",
+   "sample": "double_ascii_att.nrrd",
+   "note": ""
+  },
+  {
+   "combo_id": "double/ascii/det",
+   "sample": "double_ascii_det.nhdr",
+   "note": ""
+  }
+ ]
+}

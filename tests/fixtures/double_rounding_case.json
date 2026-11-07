@@ -1,0 +1,6 @@
+{
+ "token": "1.00000005960464477539062500001",
+ "via_binary64_then_binary32": "3ff0000000000000",
+ "direct_binary32": "3ff0000020000000",
+ "note": "decimal->binary64->binary32 与直接 decimal->binary32 在此 token 上不同；本实现走前者（与 Float::from_double 一致），不宣称所有十进制正确舍入"
+}

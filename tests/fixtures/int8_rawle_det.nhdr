@@ -1,0 +1,9 @@
+NRRD0005
+type: int8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: int8_rawle_det.raw
+content: int8/raw-le/det
+

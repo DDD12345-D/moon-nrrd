@@ -1,0 +1,9 @@
+NRRD0005
+type: double
+dimension: 1
+sizes: 12
+encoding: raw
+endian: big
+data file: double_rawbe_det.raw
+content: double/raw-be/det
+

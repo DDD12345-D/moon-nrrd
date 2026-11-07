@@ -1,0 +1,8 @@
+NRRD0005
+type: double
+dimension: 1
+sizes: 12
+encoding: ascii
+data file: double_ascii_det.txt
+content: double/ascii/det
+

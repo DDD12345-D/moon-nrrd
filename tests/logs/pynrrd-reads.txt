@@ -1,0 +1,1240 @@
+# pynrrd 1.1.3, numpy 2.5.4, index_order='F'
+fixture: double_ascii_att.nrrd
+type: double
+dimension: 1
+sizes: 12
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: double/ascii/att
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 0.1
+  3 = -1.5
+  4 = -12345.6789
+  5 = 16777217.0
+  6 = 1.7976931348623157e+308
+  7 = 2.2250738585072014e-308
+  8 = 5e-324
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: double_ascii_det.nhdr
+type: double
+dimension: 1
+sizes: 12
+encoding: ascii
+endian: <none>
+data file: double_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: double/ascii/det
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 0.1
+  3 = -1.5
+  4 = -12345.6789
+  5 = 16777217.0
+  6 = 1.7976931348623157e+308
+  7 = 2.2250738585072014e-308
+  8 = 5e-324
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: double_rawbe_att.nrrd
+type: double
+dimension: 1
+sizes: 12
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: double/raw-be/att
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 0.1
+  3 = -1.5
+  4 = -12345.6789
+  5 = 16777217.0
+  6 = 1.7976931348623157e+308
+  7 = 2.2250738585072014e-308
+  8 = 5e-324
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: double_rawbe_det.nhdr
+type: double
+dimension: 1
+sizes: 12
+encoding: raw
+endian: big
+data file: double_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: double/raw-be/det
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 0.1
+  3 = -1.5
+  4 = -12345.6789
+  5 = 16777217.0
+  6 = 1.7976931348623157e+308
+  7 = 2.2250738585072014e-308
+  8 = 5e-324
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: double_rawle_att.nrrd
+type: double
+dimension: 1
+sizes: 12
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: double/raw-le/att
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 0.1
+  3 = -1.5
+  4 = -12345.6789
+  5 = 16777217.0
+  6 = 1.7976931348623157e+308
+  7 = 2.2250738585072014e-308
+  8 = 5e-324
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: double_rawle_det.nhdr
+type: double
+dimension: 1
+sizes: 12
+encoding: raw
+endian: little
+data file: double_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: double/raw-le/det
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 0.1
+  3 = -1.5
+  4 = -12345.6789
+  5 = 16777217.0
+  6 = 1.7976931348623157e+308
+  7 = 2.2250738585072014e-308
+  8 = 5e-324
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: float_ascii_att.nrrd
+type: float
+dimension: 1
+sizes: 12
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: float/ascii/att
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 1.0
+  3 = -1.5
+  4 = 0.10000000149011612
+  5 = 16777216.0
+  6 = 3.4028234663852886e+38
+  7 = 1.1754943508222875e-38
+  8 = 1.401298464324817e-45
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: float_ascii_det.nhdr
+type: float
+dimension: 1
+sizes: 12
+encoding: ascii
+endian: <none>
+data file: float_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: float/ascii/det
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 1.0
+  3 = -1.5
+  4 = 0.10000000149011612
+  5 = 16777216.0
+  6 = 3.4028234663852886e+38
+  7 = 1.1754943508222875e-38
+  8 = 1.401298464324817e-45
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: float_rawbe_att.nrrd
+type: float
+dimension: 1
+sizes: 12
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: float/raw-be/att
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 1.0
+  3 = -1.5
+  4 = 0.10000000149011612
+  5 = 16777216.0
+  6 = 3.4028234663852886e+38
+  7 = 1.1754943508222875e-38
+  8 = 1.401298464324817e-45
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: float_rawbe_det.nhdr
+type: float
+dimension: 1
+sizes: 12
+encoding: raw
+endian: big
+data file: float_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: float/raw-be/det
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 1.0
+  3 = -1.5
+  4 = 0.10000000149011612
+  5 = 16777216.0
+  6 = 3.4028234663852886e+38
+  7 = 1.1754943508222875e-38
+  8 = 1.401298464324817e-45
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: float_rawle_att.nrrd
+type: float
+dimension: 1
+sizes: 12
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: float/raw-le/att
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 1.0
+  3 = -1.5
+  4 = 0.10000000149011612
+  5 = 16777216.0
+  6 = 3.4028234663852886e+38
+  7 = 1.1754943508222875e-38
+  8 = 1.401298464324817e-45
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: float_rawle_det.nhdr
+type: float
+dimension: 1
+sizes: 12
+encoding: raw
+endian: little
+data file: float_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: float/raw-le/det
+values:
+  0 = 0.0
+  1 = -0.0
+  2 = 1.0
+  3 = -1.5
+  4 = 0.10000000149011612
+  5 = 16777216.0
+  6 = 3.4028234663852886e+38
+  7 = 1.1754943508222875e-38
+  8 = 1.401298464324817e-45
+  9 = nan
+  10 = +inf
+  11 = -inf
+
+fixture: int16_ascii_att.nrrd
+type: int16
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int16/ascii/att
+values:
+  0 = -32768
+  1 = -12345
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 256
+  6 = 12345
+  7 = 32767
+
+fixture: int16_ascii_det.nhdr
+type: int16
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: int16_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int16/ascii/det
+values:
+  0 = -32768
+  1 = -12345
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 256
+  6 = 12345
+  7 = 32767
+
+fixture: int16_rawbe_att.nrrd
+type: int16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int16/raw-be/att
+values:
+  0 = -32768
+  1 = -12345
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 256
+  6 = 12345
+  7 = 32767
+
+fixture: int16_rawbe_det.nhdr
+type: int16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: int16_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int16/raw-be/det
+values:
+  0 = -32768
+  1 = -12345
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 256
+  6 = 12345
+  7 = 32767
+
+fixture: int16_rawle_att.nrrd
+type: int16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int16/raw-le/att
+values:
+  0 = -32768
+  1 = -12345
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 256
+  6 = 12345
+  7 = 32767
+
+fixture: int16_rawle_det.nhdr
+type: int16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: int16_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int16/raw-le/det
+values:
+  0 = -32768
+  1 = -12345
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 256
+  6 = 12345
+  7 = 32767
+
+fixture: int32_ascii_att.nrrd
+type: int32
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int32/ascii/att
+values:
+  0 = -2147483648
+  1 = -1000000000
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 65536
+  6 = 1000000000
+  7 = 2147483647
+
+fixture: int32_ascii_det.nhdr
+type: int32
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: int32_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int32/ascii/det
+values:
+  0 = -2147483648
+  1 = -1000000000
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 65536
+  6 = 1000000000
+  7 = 2147483647
+
+fixture: int32_rawbe_att.nrrd
+type: int32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int32/raw-be/att
+values:
+  0 = -2147483648
+  1 = -1000000000
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 65536
+  6 = 1000000000
+  7 = 2147483647
+
+fixture: int32_rawbe_det.nhdr
+type: int32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: int32_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int32/raw-be/det
+values:
+  0 = -2147483648
+  1 = -1000000000
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 65536
+  6 = 1000000000
+  7 = 2147483647
+
+fixture: int32_rawle_att.nrrd
+type: int32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int32/raw-le/att
+values:
+  0 = -2147483648
+  1 = -1000000000
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 65536
+  6 = 1000000000
+  7 = 2147483647
+
+fixture: int32_rawle_det.nhdr
+type: int32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: int32_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int32/raw-le/det
+values:
+  0 = -2147483648
+  1 = -1000000000
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 65536
+  6 = 1000000000
+  7 = 2147483647
+
+fixture: int8_ascii_att.nrrd
+type: int8
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int8/ascii/att
+values:
+  0 = -128
+  1 = -100
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 64
+  6 = 100
+  7 = 127
+
+fixture: int8_ascii_det.nhdr
+type: int8
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: int8_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int8/ascii/det
+values:
+  0 = -128
+  1 = -100
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 64
+  6 = 100
+  7 = 127
+
+fixture: int8_rawbe_att.nrrd
+type: int8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int8/raw-be/att
+values:
+  0 = -128
+  1 = -100
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 64
+  6 = 100
+  7 = 127
+
+fixture: int8_rawbe_det.nhdr
+type: int8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: int8_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int8/raw-be/det
+values:
+  0 = -128
+  1 = -100
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 64
+  6 = 100
+  7 = 127
+
+fixture: int8_rawle_att.nrrd
+type: int8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int8/raw-le/att
+values:
+  0 = -128
+  1 = -100
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 64
+  6 = 100
+  7 = 127
+
+fixture: int8_rawle_det.nhdr
+type: int8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: int8_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: int8/raw-le/det
+values:
+  0 = -128
+  1 = -100
+  2 = -1
+  3 = 0
+  4 = 1
+  5 = 64
+  6 = 100
+  7 = 127
+
+fixture: spatial_dim3_att.nrrd
+type: int16
+dimension: 2
+sizes: 2 2
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: 0.0 0.0 0.0
+space directions: 1.0 0.0 0.0 | 0.0 1.0 0.0
+space units: mm mm mm
+labels: <none>
+kinds: <none>
+content: spatial/dim3-att
+values:
+  0,0 = 1000
+  0,1 = 1020
+  1,0 = 1010
+  1,1 = 1030
+
+fixture: spatial_ras_att.nrrd
+type: int16
+dimension: 2
+sizes: 2 2
+encoding: raw
+endian: little
+data file: <none>
+space: right-anterior-superior
+space origin: 10.0 -5.0 2.5
+space directions: 1.5 0.0 0.0 | 0.0 2.0 0.0
+space units: mm mm mm
+labels: axis-i axis-j
+kinds: domain domain
+content: spatial/ras-att
+values:
+  0,0 = 1000
+  0,1 = 1020
+  1,0 = 1010
+  1,1 = 1030
+
+fixture: uint16_ascii_att.nrrd
+type: uint16
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint16/ascii/att
+values:
+  0 = 0
+  1 = 1
+  2 = 255
+  3 = 256
+  4 = 32767
+  5 = 32768
+  6 = 12345
+  7 = 65535
+
+fixture: uint16_ascii_det.nhdr
+type: uint16
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: uint16_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint16/ascii/det
+values:
+  0 = 0
+  1 = 1
+  2 = 255
+  3 = 256
+  4 = 32767
+  5 = 32768
+  6 = 12345
+  7 = 65535
+
+fixture: uint16_rawbe_att.nrrd
+type: uint16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint16/raw-be/att
+values:
+  0 = 0
+  1 = 1
+  2 = 255
+  3 = 256
+  4 = 32767
+  5 = 32768
+  6 = 12345
+  7 = 65535
+
+fixture: uint16_rawbe_det.nhdr
+type: uint16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: uint16_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint16/raw-be/det
+values:
+  0 = 0
+  1 = 1
+  2 = 255
+  3 = 256
+  4 = 32767
+  5 = 32768
+  6 = 12345
+  7 = 65535
+
+fixture: uint16_rawle_att.nrrd
+type: uint16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint16/raw-le/att
+values:
+  0 = 0
+  1 = 1
+  2 = 255
+  3 = 256
+  4 = 32767
+  5 = 32768
+  6 = 12345
+  7 = 65535
+
+fixture: uint16_rawle_det.nhdr
+type: uint16
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: uint16_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint16/raw-le/det
+values:
+  0 = 0
+  1 = 1
+  2 = 255
+  3 = 256
+  4 = 32767
+  5 = 32768
+  6 = 12345
+  7 = 65535
+
+fixture: uint32_ascii_att.nrrd
+type: uint32
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint32/ascii/att
+values:
+  0 = 0
+  1 = 1
+  2 = 65536
+  3 = 2147483647
+  4 = 2147483648
+  5 = 3000000000
+  6 = 4000000000
+  7 = 4294967295
+
+fixture: uint32_ascii_det.nhdr
+type: uint32
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: uint32_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint32/ascii/det
+values:
+  0 = 0
+  1 = 1
+  2 = 65536
+  3 = 2147483647
+  4 = 2147483648
+  5 = 3000000000
+  6 = 4000000000
+  7 = 4294967295
+
+fixture: uint32_rawbe_att.nrrd
+type: uint32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint32/raw-be/att
+values:
+  0 = 0
+  1 = 1
+  2 = 65536
+  3 = 2147483647
+  4 = 2147483648
+  5 = 3000000000
+  6 = 4000000000
+  7 = 4294967295
+
+fixture: uint32_rawbe_det.nhdr
+type: uint32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: uint32_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint32/raw-be/det
+values:
+  0 = 0
+  1 = 1
+  2 = 65536
+  3 = 2147483647
+  4 = 2147483648
+  5 = 3000000000
+  6 = 4000000000
+  7 = 4294967295
+
+fixture: uint32_rawle_att.nrrd
+type: uint32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint32/raw-le/att
+values:
+  0 = 0
+  1 = 1
+  2 = 65536
+  3 = 2147483647
+  4 = 2147483648
+  5 = 3000000000
+  6 = 4000000000
+  7 = 4294967295
+
+fixture: uint32_rawle_det.nhdr
+type: uint32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: uint32_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint32/raw-le/det
+values:
+  0 = 0
+  1 = 1
+  2 = 65536
+  3 = 2147483647
+  4 = 2147483648
+  5 = 3000000000
+  6 = 4000000000
+  7 = 4294967295
+
+fixture: uint8_ascii_att.nrrd
+type: uint8
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint8/ascii/att
+values:
+  0 = 0
+  1 = 1
+  2 = 2
+  3 = 64
+  4 = 127
+  5 = 128
+  6 = 200
+  7 = 255
+
+fixture: uint8_ascii_det.nhdr
+type: uint8
+dimension: 1
+sizes: 8
+encoding: ascii
+endian: <none>
+data file: uint8_ascii_det.txt
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint8/ascii/det
+values:
+  0 = 0
+  1 = 1
+  2 = 2
+  3 = 64
+  4 = 127
+  5 = 128
+  6 = 200
+  7 = 255
+
+fixture: uint8_rawbe_att.nrrd
+type: uint8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint8/raw-be/att
+values:
+  0 = 0
+  1 = 1
+  2 = 2
+  3 = 64
+  4 = 127
+  5 = 128
+  6 = 200
+  7 = 255
+
+fixture: uint8_rawbe_det.nhdr
+type: uint8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: uint8_rawbe_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint8/raw-be/det
+values:
+  0 = 0
+  1 = 1
+  2 = 2
+  3 = 64
+  4 = 127
+  5 = 128
+  6 = 200
+  7 = 255
+
+fixture: uint8_rawle_att.nrrd
+type: uint8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: <none>
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint8/raw-le/att
+values:
+  0 = 0
+  1 = 1
+  2 = 2
+  3 = 64
+  4 = 127
+  5 = 128
+  6 = 200
+  7 = 255
+
+fixture: uint8_rawle_det.nhdr
+type: uint8
+dimension: 1
+sizes: 8
+encoding: raw
+endian: little
+data file: uint8_rawle_det.raw
+space: <none>
+space origin: <none>
+space directions: <none>
+space units: <none>
+labels: <none>
+kinds: <none>
+content: uint8/raw-le/det
+values:
+  0 = 0
+  1 = 1
+  2 = 2
+  3 = 64
+  4 = 127
+  5 = 128
+  6 = 200
+  7 = 255

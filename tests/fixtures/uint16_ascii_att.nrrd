@@ -1,0 +1,8 @@
+NRRD0005
+type: uint16
+dimension: 1
+sizes: 8
+encoding: ascii
+content: uint16/ascii/att
+
+0 1 255 256 32767 32768 12345 65535

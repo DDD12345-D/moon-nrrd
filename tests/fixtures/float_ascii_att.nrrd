@@ -1,0 +1,8 @@
+NRRD0005
+type: float
+dimension: 1
+sizes: 12
+encoding: ascii
+content: float/ascii/att
+
+0.0 -0.0 1.0 -1.5 0.10000000149011612 16777216.0 3.4028234663852886e+38 1.1754943508222875e-38 1.401298464324817e-45 nan inf -inf

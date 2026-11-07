@@ -1,0 +1,9 @@
+NRRD0005
+type: int32
+dimension: 1
+sizes: 8
+encoding: raw
+endian: big
+data file: int32_rawbe_det.raw
+content: int32/raw-be/det
+

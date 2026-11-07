@@ -1,0 +1,15 @@
+NRRD0005
+type: int16
+dimension: 2
+sizes: 2 2
+encoding: raw
+endian: little
+content: spatial/ras-att
+space: right-anterior-superior
+space origin: (10.0,-5.0,2.5)
+space directions: (1.5,0.0,0.0) (0.0,2.0,0.0)
+space units: mm mm mm
+labels: axis-i axis-j
+kinds: domain domain
+
+èòü

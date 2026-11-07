@@ -1,0 +1,13 @@
+NRRD0005
+type: int16
+dimension: 2
+sizes: 2 2
+encoding: raw
+endian: little
+content: spatial/dim3-att
+space dimension: 3
+space origin: (0.0,0.0,0.0)
+space directions: (1.0,0.0,0.0) (0.0,1.0,0.0)
+space units: mm mm mm
+
+èòü

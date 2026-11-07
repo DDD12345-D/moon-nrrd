@@ -1,0 +1,9 @@
+NRRD0005
+type: float
+dimension: 1
+sizes: 12
+encoding: raw
+endian: little
+data file: float_rawle_det.raw
+content: float/raw-le/det
+
