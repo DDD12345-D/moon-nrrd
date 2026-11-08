@@ -25,6 +25,13 @@
 ///| wrap Int.
 ///|
 ///| String fields (spec escaping, injection defense):
+///| - v1 write contract: ALL writable strings (content, data file,
+///|   labels, space units, space, kinds, key:=value key and value)
+///|   are ASCII only. Non-ASCII code points are REJECTED with
+///|   NrrdError before any byte conversion — never silently
+///|   truncated to a low byte (U+010A -> 0x0A would inject a
+///|   newline into the header) and never panicked on (a
+///|   supplementary-plane UTF-16 traversal raises instead).
 ///| - `content` / `data file` are bare line strings: newline/CR and
 ///|   other C0 controls are rejected; leading/trailing whitespace is
 ///|   rejected (both readers trim, so it could not round-trip).
@@ -110,14 +117,31 @@ fn write_bits(out : Array[Byte], at : Int, bits : Int64, item : Int, big : Bool)
   }
 }
 
-///| Reject newline / CR / other C0 controls in a bare line string.
+///| Reject non-ASCII code points, invalid UTF-16 code units and
+///| C0 controls in a bare line string. v1 write contract: writable
+///| strings are ASCII only; a non-ASCII code point is NEVER silently
+///| truncated to its low byte (U+010A would become 0x0A and inject
+///| a newline) and supplementary-plane UTF-16 traversal raises
+///| instead of panicking.
 fn check_line_value(s : String, field : String) -> Unit raise NrrdError {
   let mut i = 0
   while i < s.length() {
-    let c = char_at(s, i)
-    if c.to_int() < 32 {
-      raise NrrdError(
-        "\{field}: control character \{c.to_int().to_string()} in string is not representable",
+    match s.get_char(i) {
+      Some(c) => {
+        let v = c.to_int()
+        if v > 127 {
+          raise NrrdError(
+            "\{field}: non-ASCII code point \{v.to_string()} is not representable (write strings are ASCII only)",
+          )
+        }
+        if v < 32 {
+          raise NrrdError(
+            "\{field}: control character \{v.to_string()} in string is not representable",
+          )
+        }
+      }
+      None => raise NrrdError(
+        "\{field}: invalid UTF-16 code unit at index \{i.to_string()}",
       )
     }
     i = i + 1
@@ -145,19 +169,31 @@ fn format_quoted_token(s : String, field : String) -> String raise NrrdError {
   out.write_string("\"")
   let mut i = 0
   while i < s.length() {
-    let c = char_at(s, i)
-    if c == '"' {
-      out.write_string("\\\"")
-    } else if c == '\\' {
-      raise NrrdError(
-        "\{field}: backslash in string has no spec escape and would not round-trip safely",
+    match s.get_char(i) {
+      Some(c) => {
+        let v = c.to_int()
+        if v > 127 {
+          raise NrrdError(
+            "\{field}: non-ASCII code point \{v.to_string()} is not representable (write strings are ASCII only)",
+          )
+        }
+        if c == '"' {
+          out.write_string("\\\"")
+        } else if c == '\\' {
+          raise NrrdError(
+            "\{field}: backslash in string has no spec escape and would not round-trip safely",
+          )
+        } else if v < 32 {
+          raise NrrdError(
+            "\{field}: control character \{v.to_string()} in string is not representable",
+          )
+        } else {
+          out.write_char(c)
+        }
+      }
+      None => raise NrrdError(
+        "\{field}: invalid UTF-16 code unit at index \{i.to_string()}",
       )
-    } else if c.to_int() < 32 {
-      raise NrrdError(
-        "\{field}: control character \{c.to_int().to_string()} in string is not representable",
-      )
-    } else {
-      out.write_char(c)
     }
     i = i + 1
   }
@@ -302,17 +338,29 @@ pub fn format_keyval_line(key : String, value : String) -> String raise NrrdErro
   out.write_string(":=")
   let mut i = 0
   while i < value.length() {
-    let c = char_at(value, i)
-    if c == '\\' {
-      out.write_string("\\\\")
-    } else if c == '\n' {
-      out.write_string("\\n")
-    } else if c.to_int() < 32 {
-      raise NrrdError(
-        "key:=value: control character \{c.to_int().to_string()} in value is not representable",
+    match value.get_char(i) {
+      Some(c) => {
+        let v = c.to_int()
+        if v > 127 {
+          raise NrrdError(
+            "key:=value: non-ASCII code point \{v.to_string()} in value is not representable (write strings are ASCII only)",
+          )
+        }
+        if c == '\\' {
+          out.write_string("\\\\")
+        } else if c == '\n' {
+          out.write_string("\\n")
+        } else if v < 32 {
+          raise NrrdError(
+            "key:=value: control character \{v.to_string()} in value is not representable",
+          )
+        } else {
+          out.write_char(c)
+        }
+      }
+      None => raise NrrdError(
+        "key:=value: invalid UTF-16 code unit at index \{i.to_string()} in value",
       )
-    } else {
-      out.write_char(c)
     }
     i = i + 1
   }
@@ -348,8 +396,10 @@ fn check_writable(h : NrrdHeader) -> Unit raise NrrdError {
 ///| key:=value pairs are not carried by NrrdHeader and are never
 ///| replayed here.
 pub fn format_header(h : NrrdHeader) -> String raise NrrdError {
-  validate_header(h)
-  check_writable(h)
+  // v1 ASCII write contract checked uniformly on every writable
+  // string BEFORE semantic validation or formatting (必修 1): a
+  // non-ASCII code point must always raise, regardless of which
+  // field carries it or what other legality rules apply.
   match h.data_file {
     Some(name) => check_line_value_trimmed(name, "data file")
     None => ()
@@ -358,6 +408,33 @@ pub fn format_header(h : NrrdHeader) -> String raise NrrdError {
     Some(c) => check_line_value_trimmed(c, "content")
     None => ()
   }
+  match h.space {
+    Some(sp) => check_line_value_trimmed(sp, "space")
+    None => ()
+  }
+  match h.labels {
+    Some(ls) =>
+      for s in ls {
+        check_line_value(s, "labels")
+      }
+    None => ()
+  }
+  match h.space_units {
+    Some(us) =>
+      for s in us {
+        check_line_value(s, "space units")
+      }
+    None => ()
+  }
+  match h.kinds {
+    Some(ks) =>
+      for s in ks {
+        check_line_value(s, "kinds")
+      }
+    None => ()
+  }
+  validate_header(h)
+  check_writable(h)
   let t = normalize_type(h.type_name)
   let e = normalize_encoding(h.encoding)
   let out = StringBuilder()
@@ -512,7 +589,9 @@ fn parse_decimal_spec(s : String) -> (Bool, String, Int)? {
     lead = lead + 1
   }
   if lead == raw.length() {
-    return Some((false, "0", 0)) // zero (sign handled by caller specials)
+    // zero: KEEP the sign (必修 2 — dropping it here turned a
+    // negative-zero candidate into a sign-less "0")
+    return Some((neg, "0", 0))
   }
   let mut trail = raw.length()
   while trail > lead && char_at(raw, trail - 1) == '0' {
@@ -629,22 +708,27 @@ fn round_sig_str(s : String, k : Int) -> String? {
 ///| Shortest decimal round-trip token for one binary32 value under
 ///| the READER's two-step parse (decimal -> binary64 -> binary32 via
 ///| `Float::from_double`). The input double is first reduced to its
-///| nearest binary32 — that stored value is what the token must
-///| describe. Candidate strings are verified by parsing back through
-///| the exact read path, so the result round-trips by construction
-///| (cross-check with tests/fixtures/double_rounding_case.json).
+///| nearest binary32 (ties-to-even; overflow saturates to +-inf,
+///| underflow keeps the sign of zero) — the token describes THAT
+///| stored value, so zero/inf/nan are decided AFTER narrowing
+///| (必修 2: deciding specials on the pre-narrow double loses the
+///| sign of a negative underflow like -1.0e-50 -> -0.0). Candidate
+///| strings are verified by parsing back through the exact read
+///| path with sign-aware comparison (f32_step_eq), so the result
+///| round-trips by construction (cross-check with
+///| tests/fixtures/double_rounding_case.json).
 fn ascii_float32_token(v : Double) -> String {
-  match ascii_special_token(v) {
+  let w = Float::to_double(Float::from_double(v))
+  match ascii_special_token(w) {
     Some(t) => t
     None => {
-      let w = Float::to_double(Float::from_double(v))
       let full = w.to_string()
       let mut k = 1
       while k <= 17 {
         match round_sig_str(full, k) {
           Some(tok) => match parse_double_str(tok) {
             Some(p) =>
-              if Float::to_double(Float::from_double(p)) == w {
+              if f32_step_eq(p, w) {
                 return tok
               }
             None => ()
@@ -657,6 +741,20 @@ fn ascii_float32_token(v : Double) -> String {
       // to binary64; fall back to the binary64 shortest repr.
       normalize_numeric_string(full)
     }
+  }
+}
+
+///| Candidate check for the float32 ASCII writer: parse the decimal
+///| token back through the reader's two-step parse and compare to
+///| the stored binary32 `w`. Equal as float32 AND, when both are
+///| zero, the sign of zero must match (IEEE `==` alone treats
+///| +0.0 == -0.0 as equal and would accept a sign-losing token).
+fn f32_step_eq(parsed : Double, w : Double) -> Bool {
+  let got = Float::to_double(Float::from_double(parsed))
+  if got == 0.0 && w == 0.0 {
+    is_neg_zero(got) == is_neg_zero(w)
+  } else {
+    got == w
   }
 }
 

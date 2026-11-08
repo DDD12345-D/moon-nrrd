@@ -1,0 +1,9 @@
+moon-nrrd write-side reference check (we write -> pynrrd reads)
+utc: 20261108T162943Z
+platform: Windows-11-10.0.26200-SP0  python: 3.13.14
+pynrrd: 1.1.3  numpy: 2.5.4
+moon: moon 0.1.20261028 (e1e1f15 2026-10-28)
+commands: moon run --target js cmd/write-probe -- <out>; python tests/check_write_reference.py
+semantics: nan==nan; +-inf signed; zero signed; rest exact
+golden: payload == python struct.pack (byte-exact; BE proven by explicit big-endian packing)
+========================================================================

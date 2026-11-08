@@ -115,6 +115,70 @@ fn write_cell(out_dir : String, t : String, enc_id : String, att : Bool) -> Unit
   }
 }
 
+///| Extra sample 1 (multi-dim index order): 2x3x2 int16 raw-le
+///| attached. File order is sizes[0] fastest, so position
+///| i + 2*j + 6*k must hold value 100*i + 10*j + k. The external
+///| check reads it with pynrrd and compares data[i,j,k] directly —
+///| a 1-D self round-trip cannot catch an axis-order mistake.
+fn write_multi_sample(out_dir : String) -> Unit raise @nrrd.NrrdError {
+  let vs = [
+    0.0, 100.0, 10.0, 110.0, 20.0, 120.0, // k=0
+    1.0, 101.0, 11.0, 111.0, 21.0, 121.0, // k=1
+  ]
+  let h = @nrrd.NrrdHeader::{
+    dimension: 3,
+    sizes: [2, 3, 2],
+    type_name: "int16",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: None,
+    space: None,
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: None,
+    labels: None,
+    kinds: None,
+    content: Some("extra/multi2x3x2"),
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  let full = @nrrd.assemble_attached(h, vs)
+  write_file(join_path(out_dir, "multi2x3x2_att.nrrd"), full)
+  println("extra/multi2x3x2\tmulti2x3x2_att.nrrd\t-")
+}
+
+///| Extra sample 2 (spatial metadata external read): 2x3 double
+///| raw-le detached in a named 3-D space with labels / space origin
+///| / space directions / space units / kinds. Array dimension (2)
+///| deliberately differs from space dimension (3) so per-axis and
+///| per-space counts cannot mask each other.
+fn write_spatial_sample(out_dir : String) -> Unit raise @nrrd.NrrdError {
+  let vs = [0.0, -0.0, 1.0, -1.5, 0.1, 2.5]
+  let h = @nrrd.NrrdHeader::{
+    dimension: 2,
+    sizes: [2, 3],
+    type_name: "double",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: Some("spatial_meta_det.raw"),
+    space: Some("right-anterior-superior"),
+    space_dimension: None,
+    space_origin: Some([1.5, 0.0, -2.0]),
+    space_directions: [Some([1.5, 0.0, 0.0]), Some([0.0, 1.5, 0.0])],
+    space_units: Some(["mm", "mm", "mm"]),
+    labels: Some(["row", "col"]),
+    kinds: Some(["domain", "domain"]),
+    content: Some("extra/spatial-meta"),
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  let (head, payload) = @nrrd.assemble_detached(h, vs)
+  write_file(join_path(out_dir, "spatial_meta_det.nhdr"), head)
+  write_file(join_path(out_dir, "spatial_meta_det.raw"), payload)
+  println("extra/spatial-meta\tspatial_meta_det.nhdr\tspatial_meta_det.raw")
+}
+
 ///|
 fn main {
   let args = @env.args()
@@ -149,6 +213,32 @@ fn main {
     }
   }
   eprintln("write-probe: \{written}/48 cells written")
+  let mut extras = 0
+  try {
+    write_multi_sample(out_dir)
+    extras = extras + 1
+  } catch {
+    err => {
+      let msg = match err {
+        @nrrd.NrrdError(m) => m
+      }
+      eprintln("error: multi2x3x2 sample: \{msg}")
+      any_failed = true
+    }
+  }
+  try {
+    write_spatial_sample(out_dir)
+    extras = extras + 1
+  } catch {
+    err => {
+      let msg = match err {
+        @nrrd.NrrdError(m) => m
+      }
+      eprintln("error: spatial-meta sample: \{msg}")
+      any_failed = true
+    }
+  }
+  eprintln("write-probe: \{extras}/2 extra samples written")
   if any_failed {
     set_exit_code(1)
   }

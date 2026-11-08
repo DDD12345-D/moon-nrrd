@@ -611,6 +611,107 @@ test "float32 ascii shortest tokens and cross-read" {
   }
 }
 
+///| 必修 2 regression: the float32 token must describe the STORED
+///| binary32 (narrow first, then zero/inf/nan of that stored value).
+///| Negative underflow keeps the sign of zero (-1.0e-50 -> -0.0),
+///| positive underflow -> +0.0, overflow saturates to signed inf,
+///| subnormal boundaries follow ties-to-even — verified through the
+///| public encode_data on BOTH raw and ASCII paths.
+test "float32 underflow overflow and subnormal boundaries" {
+  let hraw = enc_hdr("float", "raw", 1, endian=Some("little"))
+  let hascii = enc_hdr("float", "ascii", 1)
+  // the audit counter-example: negative underflow must be "-0.0",
+  // never a sign-less "0"
+  let ba = @moon-nrrd.encode_data([-1.0e-50], hascii)
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(ba) == "-0.0\n",
+    msg="neg underflow ascii token: \{@moon-nrrd.bytes_to_ascii(ba)}",
+  )
+  let br = @moon-nrrd.encode_data([-1.0e-50], hraw)
+  assert_true(enc_bytes_eq(br, [0x00, 0x00, 0x00, 0x80]), msg="neg underflow raw bits")
+  // positive underflow -> +0.0
+  let ba2 = @moon-nrrd.encode_data([1.0e-50], hascii)
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(ba2) == "0.0\n",
+    msg="pos underflow ascii token: \{@moon-nrrd.bytes_to_ascii(ba2)}",
+  )
+  let br2 = @moon-nrrd.encode_data([1.0e-50], hraw)
+  assert_true(enc_bytes_eq(br2, [0x00, 0x00, 0x00, 0x00]), msg="pos underflow raw bits")
+  // overflow saturates to signed infinity (raw + ascii)
+  let ha2 = enc_hdr("float", "ascii", 2)
+  let ba3 = @moon-nrrd.encode_data([1.0e39, -1.0e39], ha2)
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(ba3) == "inf -inf\n",
+    msg="overflow ascii tokens: \{@moon-nrrd.bytes_to_ascii(ba3)}",
+  )
+  let hr2 = enc_hdr("float", "raw", 2, endian=Some("big"))
+  let br3 = @moon-nrrd.encode_data([1.0e39, -1.0e39], hr2)
+  assert_true(
+    enc_bytes_eq(br3, [0x7f, 0x80, 0x00, 0x00, 0xff, 0x80, 0x00, 0x00]),
+    msg="overflow raw bits",
+  )
+  // boundary subnormals (ties-to-even verified against IEEE / numpy):
+  // 2^-150 (half of min subnormal) -> +0.0; its negation -> -0.0
+  let half = 7.006492321624085e-46
+  assert_true(
+    enc_bytes_eq(@moon-nrrd.encode_data([half], hraw), [0x00, 0x00, 0x00, 0x00]),
+    msg="half min subnormal ties to +0.0",
+  )
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(@moon-nrrd.encode_data([half], hascii)) == "0.0\n",
+    msg="half min subnormal ascii -> 0.0",
+  )
+  assert_true(
+    enc_bytes_eq(@moon-nrrd.encode_data([0.0 - half], hraw), [0x00, 0x00, 0x00, 0x80]),
+    msg="neg half min subnormal ties to -0.0",
+  )
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(@moon-nrrd.encode_data([0.0 - half], hascii)) == "-0.0\n",
+    msg="neg half min subnormal ascii -> -0.0",
+  )
+  // min subnormal 2^-149 -> 0x00000001, ascii "1e-45"
+  assert_true(
+    enc_bytes_eq(
+      @moon-nrrd.encode_data([1.401298464324817e-45], hraw),
+      [0x01, 0x00, 0x00, 0x00],
+    ),
+    msg="min subnormal raw",
+  )
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(@moon-nrrd.encode_data([1.401298464324817e-45], hascii)) == "1e-45\n",
+    msg="min subnormal ascii",
+  )
+  // 2 ulp subnormal -> 0x00000002
+  assert_true(
+    enc_bytes_eq(
+      @moon-nrrd.encode_data([2.802596928649634e-45], hraw),
+      [0x02, 0x00, 0x00, 0x00],
+    ),
+    msg="2-ulp subnormal raw",
+  )
+  // native -0.0: raw sign bit and ascii token agree
+  assert_true(
+    enc_bytes_eq(@moon-nrrd.encode_data([-0.0], hraw), [0x00, 0x00, 0x00, 0x80]),
+    msg="native -0.0 raw",
+  )
+  assert_true(
+    @moon-nrrd.bytes_to_ascii(@moon-nrrd.encode_data([-0.0], hascii)) == "-0.0\n",
+    msg="native -0.0 ascii",
+  )
+  // raw/ascii cross-check on the stored value: both decode to the
+  // same binary32 with the same sign of zero
+  let vr = @moon-nrrd.decode_data(@moon-nrrd.encode_data([-1.0e-50], hraw), hraw)
+  let va = @moon-nrrd.decode_data(@moon-nrrd.encode_data([-1.0e-50], hascii), hascii)
+  assert_true(
+    Float::reinterpret_as_int(Float::from_double(vr[0])) == -2147483648,
+    msg="raw decode keeps -0.0",
+  )
+  assert_true(
+    Float::reinterpret_as_int(Float::from_double(va[0])) == -2147483648,
+    msg="ascii decode keeps -0.0",
+  )
+}
+
 // ---------------------------------------------------------------------------
 // sizes / budget / assembly
 // ---------------------------------------------------------------------------
@@ -730,4 +831,261 @@ test "assemble_detached splits header and payload" {
     }
   }
   assert_true(raised, msg="detached without name must raise")
+}
+
+///| Count non-overlapping occurrences of a substring.
+fn enc_count_sub(hay : String, needle : String) -> Int {
+  let hl = hay.length()
+  let nl = needle.length()
+  let mut n = 0
+  let mut i = 0
+  while i + nl <= hl {
+    if hay[i:i+nl].to_owned() == needle {
+      n = n + 1
+      i = i + nl
+    } else {
+      i = i + 1
+    }
+  }
+  n
+}
+
+///| 必修 1 regression: every writable string field rejects non-ASCII
+///| with a catchable NrrdError — never a silent low-byte truncation
+///| (U+010A Ċ -> 0x0A would inject a header line) and never a panic
+///| on supplementary-plane UTF-16 (emoji surrogate pair).
+test "non-ASCII is rejected in every writable string field" {
+  let mk_content = fn(c : String) -> @moon-nrrd.NrrdHeader {
+    @moon-nrrd.NrrdHeader::{
+      dimension: 1,
+      sizes: [1],
+      type_name: "int8",
+      encoding: "raw",
+      endian: Some("little"),
+      data_file: None,
+      space: None,
+      space_dimension: None,
+      space_origin: None,
+      space_directions: [],
+      space_units: None,
+      labels: None,
+      kinds: None,
+      content: Some(c),
+      line_skip: 0,
+      byte_skip: 0,
+    }
+  }
+  // Ċ (U+010A): low byte is 0x0A — the exact injection反例
+  assert_true(
+    enc_hdr_err(mk_content("Ċtype: uint8")).contains("non-ASCII"),
+    msg="C-dot content: \{enc_hdr_err(mk_content("Ċtype: uint8"))}",
+  )
+  // 中文 (CJK)
+  assert_true(
+    enc_hdr_err(mk_content("中文内容")).contains("non-ASCII"),
+    msg="CJK content",
+  )
+  // emoji (supplementary plane, UTF-16 surrogate pair on js):
+  // must raise (non-ASCII or invalid code unit), never panic
+  let em = enc_hdr_err(mk_content("x😀y"))
+  assert_true(
+    em.contains("non-ASCII") || em.contains("invalid UTF-16"),
+    msg="emoji content: \{em}",
+  )
+  // data file
+  let h_df = @moon-nrrd.NrrdHeader::{
+    dimension: 1,
+    sizes: [1],
+    type_name: "int8",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: Some("Ċ.raw"),
+    space: None,
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: None,
+    labels: None,
+    kinds: None,
+    content: None,
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  assert_true(enc_hdr_err(h_df).contains("non-ASCII"), msg="data file")
+  // labels (quoted token path)
+  let h_lb = @moon-nrrd.NrrdHeader::{
+    dimension: 1,
+    sizes: [1],
+    type_name: "int8",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: None,
+    space: None,
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: None,
+    labels: Some(["Ċ"]),
+    kinds: None,
+    content: None,
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  assert_true(enc_hdr_err(h_lb).contains("non-ASCII"), msg="labels")
+  // space units (quoted token path)
+  let h_su = @moon-nrrd.NrrdHeader::{
+    dimension: 1,
+    sizes: [1],
+    type_name: "int8",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: None,
+    space: None,
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: Some(["mmĊ"]),
+    labels: None,
+    kinds: None,
+    content: None,
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  assert_true(enc_hdr_err(h_su).contains("non-ASCII"), msg="space units")
+  // space
+  let h_sp = @moon-nrrd.NrrdHeader::{
+    dimension: 1,
+    sizes: [1],
+    type_name: "int8",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: None,
+    space: Some("RAĊ"),
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: None,
+    labels: None,
+    kinds: None,
+    content: None,
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  assert_true(enc_hdr_err(h_sp).contains("non-ASCII"), msg="space")
+  // kinds (bare token path)
+  let h_kd = @moon-nrrd.NrrdHeader::{
+    dimension: 1,
+    sizes: [1],
+    type_name: "int8",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: None,
+    space: None,
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: None,
+    labels: None,
+    kinds: Some(["domainĊ"]),
+    content: None,
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  assert_true(enc_hdr_err(h_kd).contains("non-ASCII"), msg="kinds")
+  // key:=value key and value
+  assert_true(
+    enc_kv_err("kĊ", "v").contains("non-ASCII"),
+    msg="keyval key: \{enc_kv_err("kĊ", "v")}",
+  )
+  assert_true(
+    enc_kv_err("k", "Ċv").contains("non-ASCII"),
+    msg="keyval value: \{enc_kv_err("k", "Ċv")}",
+  )
+  // 转义符 policy still holds alongside the ASCII contract:
+  // quote is the only escape in quoted tokens; backslash rejected
+  let h_bs = @moon-nrrd.NrrdHeader::{
+    dimension: 1,
+    sizes: [1],
+    type_name: "int8",
+    encoding: "raw",
+    endian: Some("little"),
+    data_file: None,
+    space: None,
+    space_dimension: None,
+    space_origin: None,
+    space_directions: [],
+    space_units: None,
+    labels: Some(["a\\b"]),
+    kinds: None,
+    content: None,
+    line_skip: 0,
+    byte_skip: 0,
+  }
+  assert_true(enc_hdr_err(h_bs).contains("backslash"), msg="backslash in labels")
+  // keyval value escapes backslash (does not reject) and never leaks
+  // a raw newline into the line
+  let kv = @moon-nrrd.format_keyval_line("k", "a\\b\nc")
+  assert_true(kv.contains("a\\\\b\\nc"), msg="keyval escapes: \{kv}")
+  assert_true(!kv.contains("\n"), msg="no raw newline in keyval line")
+}
+
+///| 必修 1 regression on the public assembly paths: injection
+///| attempts raise catchable NrrdError (no bytes escape), and a
+///| legal header's final bytes carry no injected field and exactly
+///| one blank line (the header terminator) — no early blank line.
+test "assembly rejects injection and emits one blank line" {
+  // attached: the exact audit counter-example
+  let h = enc_hdr("int8", "raw", 1, endian=Some("little"), content=Some("Ċtype: uint8"))
+  let mut raised = false
+  try {
+    let _b = @moon-nrrd.assemble_attached(h, [1.0])
+  } catch {
+    @moon-nrrd.NrrdError(m) => {
+      raised = true
+      assert_true(m.contains("non-ASCII"), msg="attached attack: \{m}")
+    }
+  }
+  assert_true(raised, msg="attached injection must raise")
+  // attached: legal content with an interior colon must not gain
+  // extra fields or an early blank line in the final bytes
+  let ok = enc_hdr("int8", "raw", 1, endian=Some("little"), content=Some("ok: still ok"))
+  let full = @moon-nrrd.assemble_attached(ok, [1.0])
+  let text = @moon-nrrd.bytes_to_ascii(full)
+  assert_true(text.contains("content: ok: still ok\n"), msg="content kept")
+  assert_true(enc_count_sub(text, "type: ") == 1, msg="one type line: \{text}")
+  assert_true(
+    enc_count_sub(text, "\n\n") == 1,
+    msg="exactly one blank line (terminator): \{text}",
+  )
+  // detached: injection via data file and via content both raise
+  let h_df = enc_hdr("int8", "raw", 1, endian=Some("little"), data_file=Some("Ċ\nx.raw"))
+  let mut raised2 = false
+  try {
+    let _pair = @moon-nrrd.assemble_detached(h_df, [1.0])
+  } catch {
+    @moon-nrrd.NrrdError(_m) => raised2 = true
+  }
+  assert_true(raised2, msg="detached data-file injection must raise")
+  let h_ct = enc_hdr("int8", "raw", 1, endian=Some("little"), data_file=Some("d.raw"), content=Some("Ċ\nencoding: raw"))
+  let mut raised3 = false
+  try {
+    let _pair = @moon-nrrd.assemble_detached(h_ct, [1.0])
+  } catch {
+    @moon-nrrd.NrrdError(_m) => raised3 = true
+  }
+  assert_true(raised3, msg="detached content injection must raise")
+  // detached: legal output ends with exactly one blank line before
+  // the (separate) payload
+  let ok2 = enc_hdr("uint16", "raw", 1, endian=Some("big"), data_file=Some("d.raw"), content=Some("ok: still ok"))
+  let (head, payload) = @moon-nrrd.assemble_detached(ok2, [1.0])
+  let htext = @moon-nrrd.bytes_to_ascii(head)
+  assert_true(enc_count_sub(htext, "\n\n") == 1, msg="detached head blank line: \{htext}")
+  assert_true(
+    head.length() >= 2 &&
+      head[head.length() - 1].to_int() == 10 &&
+      head[head.length() - 2].to_int() == 10,
+    msg="detached head ends with blank line",
+  )
+  assert_true(enc_count_sub(htext, "type: ") == 1, msg="detached one type line")
+  assert_true(enc_bytes_eq(payload, [0x00, 0x01]), msg="detached payload intact")
 }

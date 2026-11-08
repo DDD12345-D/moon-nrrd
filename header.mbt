@@ -56,9 +56,35 @@ pub fn bytes_to_ascii(b : Bytes) -> String {
   String::from_array(Array::makei(b.length(), i => b[i].to_int().unsafe_to_char()))
 }
 
-///| String -> Bytes taking the low byte of each code unit (ASCII only).
-pub fn ascii_to_bytes(s : String) -> Bytes {
-  Bytes::from_array(Array::makei(s.length(), i => char_at(s, i).to_int().to_byte()))
+///| String -> Bytes treating every code unit as an ASCII code point.
+///| v1 encoding contract: writable strings are ASCII only (NRRD
+///| headers are ASCII by specification). Any code point outside
+///| U+0000..U+007F is REJECTED with NrrdError — never silently
+///| truncated to its low byte (U+010A would become 0x0A and inject
+///| a newline into the header) and never panic on supplementary-plane
+///| UTF-16 traversal (missing code units raise instead).
+pub fn ascii_to_bytes(s : String) -> Bytes raise NrrdError {
+  let n = s.length()
+  let out : Array[Byte] = []
+  let mut i = 0
+  while i < n {
+    match s.get_char(i) {
+      Some(c) => {
+        let v = c.to_int()
+        if v > 127 {
+          raise NrrdError(
+            "ascii_to_bytes: non-ASCII code point \{v.to_string()} is not representable",
+          )
+        }
+        out.push(v.to_byte())
+      }
+      None => raise NrrdError(
+        "ascii_to_bytes: invalid UTF-16 code unit at index \{i.to_string()}",
+      )
+    }
+    i = i + 1
+  }
+  Bytes::from_array(out)
 }
 
 ///| `s[a:b]` slice as an owned String.

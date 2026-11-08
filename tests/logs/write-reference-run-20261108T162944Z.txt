@@ -1,0 +1,158 @@
+moon-nrrd write-side reference check (we write -> pynrrd reads)
+utc: 20261108T162944Z
+platform: Windows-11-10.0.26200-SP0  python: 3.13.14
+pynrrd: 1.1.3  numpy: 2.5.4
+moon: moon 0.1.20261028 (e1e1f15 2026-10-28)
+commands: moon run --target js cmd/write-probe -- <out>; python tests/check_write_reference.py
+semantics: nan==nan; +-inf signed; zero signed; rest exact
+golden: payload == python struct.pack (byte-exact; BE proven by explicit big-endian packing)
+========================================================================
++ C:\Users\ddd\Desktop\黑客松\zvm-research\toolchain\runtime/bin/moon.exe run --target js cmd/write-probe -- C:\Users\ddd\Desktop\黑客松\moon-nrrd\tests\out\write-ref
+int8/raw-le/att	int8_rawle_att.nrrd	-
+int8/raw-le/det	int8_rawle_det.nhdr	int8_rawle_det.raw
+int8/raw-be/att	int8_rawbe_att.nrrd	-
+int8/raw-be/det	int8_rawbe_det.nhdr	int8_rawbe_det.raw
+int8/ascii/att	int8_ascii_att.nrrd	-
+int8/ascii/det	int8_ascii_det.nhdr	int8_ascii_det.txt
+uint8/raw-le/att	uint8_rawle_att.nrrd	-
+uint8/raw-le/det	uint8_rawle_det.nhdr	uint8_rawle_det.raw
+uint8/raw-be/att	uint8_rawbe_att.nrrd	-
+uint8/raw-be/det	uint8_rawbe_det.nhdr	uint8_rawbe_det.raw
+uint8/ascii/att	uint8_ascii_att.nrrd	-
+uint8/ascii/det	uint8_ascii_det.nhdr	uint8_ascii_det.txt
+int16/raw-le/att	int16_rawle_att.nrrd	-
+int16/raw-le/det	int16_rawle_det.nhdr	int16_rawle_det.raw
+int16/raw-be/att	int16_rawbe_att.nrrd	-
+int16/raw-be/det	int16_rawbe_det.nhdr	int16_rawbe_det.raw
+int16/ascii/att	int16_ascii_att.nrrd	-
+int16/ascii/det	int16_ascii_det.nhdr	int16_ascii_det.txt
+uint16/raw-le/att	uint16_rawle_att.nrrd	-
+uint16/raw-le/det	uint16_rawle_det.nhdr	uint16_rawle_det.raw
+uint16/raw-be/att	uint16_rawbe_att.nrrd	-
+uint16/raw-be/det	uint16_rawbe_det.nhdr	uint16_rawbe_det.raw
+uint16/ascii/att	uint16_ascii_att.nrrd	-
+uint16/ascii/det	uint16_ascii_det.nhdr	uint16_ascii_det.txt
+int32/raw-le/att	int32_rawle_att.nrrd	-
+int32/raw-le/det	int32_rawle_det.nhdr	int32_rawle_det.raw
+int32/raw-be/att	int32_rawbe_att.nrrd	-
+int32/raw-be/det	int32_rawbe_det.nhdr	int32_rawbe_det.raw
+int32/ascii/att	int32_ascii_att.nrrd	-
+int32/ascii/det	int32_ascii_det.nhdr	int32_ascii_det.txt
+uint32/raw-le/att	uint32_rawle_att.nrrd	-
+uint32/raw-le/det	uint32_rawle_det.nhdr	uint32_rawle_det.raw
+uint32/raw-be/att	uint32_rawbe_att.nrrd	-
+uint32/raw-be/det	uint32_rawbe_det.nhdr	uint32_rawbe_det.raw
+uint32/ascii/att	uint32_ascii_att.nrrd	-
+uint32/ascii/det	uint32_ascii_det.nhdr	uint32_ascii_det.txt
+float/raw-le/att	float_rawle_att.nrrd	-
+float/raw-le/det	float_rawle_det.nhdr	float_rawle_det.raw
+float/raw-be/att	float_rawbe_att.nrrd	-
+float/raw-be/det	float_rawbe_det.nhdr	float_rawbe_det.raw
+float/ascii/att	float_ascii_att.nrrd	-
+float/ascii/det	float_ascii_det.nhdr	float_ascii_det.txt
+double/raw-le/att	double_rawle_att.nrrd	-
+double/raw-le/det	double_rawle_det.nhdr	double_rawle_det.raw
+double/raw-be/att	double_rawbe_att.nrrd	-
+double/raw-be/det	double_rawbe_det.nhdr	double_rawbe_det.raw
+double/ascii/att	double_ascii_att.nrrd	-
+double/ascii/det	double_ascii_det.nhdr	double_ascii_det.txt
+extra/multi2x3x2	multi2x3x2_att.nrrd	-
+extra/spatial-meta	spatial_meta_det.nhdr	spatial_meta_det.raw
+[stderr]
+Warning: [0071]
+    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:34:54 ]
+    │
+ 34 │       1.1754943508222875e-38, 1.401298464324817e-45, @double.not_a_number, @double.infinity,
+    │                                                      ──────────┬─────────  
+    │                                                                ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+Warning: [0071]
+    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:34:76 ]
+    │
+ 34 │       1.1754943508222875e-38, 1.401298464324817e-45, @double.not_a_number, @double.infinity,
+    │                                                                            ────────┬───────  
+    │                                                                                    ╰───────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+Warning: [0071]
+    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:35:7 ]
+    │
+ 35 │       @double.neg_infinity,
+    │       ──────────┬─────────  
+    │                 ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+Warning: [0071]
+    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:39:42 ]
+    │
+ 39 │       2.2250738585072014e-308, 5.0e-324, @double.not_a_number, @double.infinity,
+    │                                          ──────────┬─────────  
+    │                                                    ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+Warning: [0071]
+    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:39:64 ]
+    │
+ 39 │       2.2250738585072014e-308, 5.0e-324, @double.not_a_number, @double.infinity,
+    │                                                                ────────┬───────  
+    │                                                                        ╰───────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+Warning: [0071]
+    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:40:7 ]
+    │
+ 40 │       @double.neg_infinity,
+    │       ──────────┬─────────  
+    │                 ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+write-probe: 48/48 cells written
+write-probe: 2/2 extra samples written
+PASS  int8/raw-le/att           single-byte LE==BE (synonym cell)
+PASS  int8/raw-le/det           single-byte LE==BE (synonym cell)
+PASS  int8/raw-be/att           single-byte LE==BE (synonym cell)
+PASS  int8/raw-be/det           single-byte LE==BE (synonym cell)
+PASS  int8/ascii/att            ok
+PASS  int8/ascii/det            ok
+PASS  uint8/raw-le/att          single-byte LE==BE (synonym cell)
+PASS  uint8/raw-le/det          single-byte LE==BE (synonym cell)
+PASS  uint8/raw-be/att          single-byte LE==BE (synonym cell)
+PASS  uint8/raw-be/det          single-byte LE==BE (synonym cell)
+PASS  uint8/ascii/att           ok
+PASS  uint8/ascii/det           ok
+PASS  int16/raw-le/att          ok
+PASS  int16/raw-le/det          ok
+PASS  int16/raw-be/att          BE-bytes!=LE-bytes(proven)
+PASS  int16/raw-be/det          BE-bytes!=LE-bytes(proven)
+PASS  int16/ascii/att           ok
+PASS  int16/ascii/det           ok
+PASS  uint16/raw-le/att         ok
+PASS  uint16/raw-le/det         ok
+PASS  uint16/raw-be/att         BE-bytes!=LE-bytes(proven)
+PASS  uint16/raw-be/det         BE-bytes!=LE-bytes(proven)
+PASS  uint16/ascii/att          ok
+PASS  uint16/ascii/det          ok
+PASS  int32/raw-le/att          ok
+PASS  int32/raw-le/det          ok
+PASS  int32/raw-be/att          BE-bytes!=LE-bytes(proven)
+PASS  int32/raw-be/det          BE-bytes!=LE-bytes(proven)
+PASS  int32/ascii/att           ok
+PASS  int32/ascii/det           ok
+PASS  uint32/raw-le/att         ok
+PASS  uint32/raw-le/det         ok
+PASS  uint32/raw-be/att         BE-bytes!=LE-bytes(proven)
+PASS  uint32/raw-be/det         BE-bytes!=LE-bytes(proven)
+PASS  uint32/ascii/att          ok
+PASS  uint32/ascii/det          ok
+PASS  float/raw-le/att          ok
+PASS  float/raw-le/det          ok
+PASS  float/raw-be/att          BE-bytes!=LE-bytes(proven)
+PASS  float/raw-be/det          BE-bytes!=LE-bytes(proven)
+PASS  float/ascii/att           ok
+PASS  float/ascii/det           ok
+PASS  double/raw-le/att         ok
+PASS  double/raw-le/det         value[9] NaN payload differs (not promised)
+PASS  double/raw-be/att         value[9] NaN payload differs (not promised); BE-bytes!=LE-bytes(proven)
+PASS  double/raw-be/det         value[9] NaN payload differs (not promised); BE-bytes!=LE-bytes(proven)
+PASS  double/ascii/att          ok
+PASS  double/ascii/det          ok
+------------------------------------------------------------------------
+FAIL  multi2x3x2/index-order    pynrrd error: name 'nrrd' is not defined
+FAIL  spatial-meta/external-read  pynrrd error: name 'nrrd' is not defined
+========================================================================
+write-reference: 48/48 cells pass + 2 extra samples (failures=2)

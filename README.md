@@ -25,7 +25,9 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
 - 整数类型：有限、整数值、在类型范围内，违例 raise 并指明值与类型，
   绝不静默截断；uint32 高半区（≥2^31）经 Int64 精确。
 - float：存储值 = 最近 binary32（ties-to-even，`Float::from_double`；
-  溢出饱和 ±inf）；double 有限值与 -0.0 位精确。
+  溢出饱和 ±inf，下溢保号到 ±0.0）；ASCII 特值判定作用于**缩窄后的
+  存储值**（先缩窄再判零/无穷/NaN，负下溢如 -1.0e-50 输出 "-0.0"
+  而非 "0"）；double 有限值与 -0.0 位精确。
 - NaN：只承诺语义（nan==nan）；payload/signaling 位不承诺（js 后端已实测
   不稳定，见 tests/logs/write-reference-run-*.txt 的如实标注）。
 - ASCII：整数走精确十进制 Int64 文本（不经有损浮点格式化）；float32 写
@@ -35,6 +37,11 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
 
 ## 写侧字符串策略（防注入，按规范转义）
 
+- **v1 写契约：所有可写字符串仅 ASCII**（content / data file / labels /
+  space units / space / kinds / key:=value 键与值）。非 ASCII 码点一律
+  raise NrrdError 拒绝——绝不静默截断到低字节（U+010A 的低字节是 0x0A，
+  截断会向头部注入换行/字段），补充平面字符的 UTF-16 遍历同样 raise
+  而非 panic。
 - `content` / `data file`：行内裸串；换行/回车/C0 控制符拒绝；首尾空白
   拒绝（读端会 trim，无法往返）。
 - `labels` / `space units`：双引号定界，仅 `\"` 转义（规范 §1.6）；反斜杠

@@ -2,7 +2,7 @@
 package "DDD12345-D/moon-nrrd"
 
 // Values
-pub fn ascii_to_bytes(String) -> Bytes
+pub fn ascii_to_bytes(String) -> Bytes raise NrrdError
 
 pub fn assemble_attached(NrrdHeader, Array[Double], budget? : Int32) -> Bytes raise NrrdError
 

@@ -343,9 +343,12 @@ def main():
             mark = "PASS" if ok else "FAIL"
             log.write(f"{mark}  {combo_id:24s}  {detail}\n")
             print(f"{mark}  {combo_id:24s}  {detail}")
+        log.write("-" * 72 + "\n")
+        failures += check_extra_samples(log)
         log.write("=" * 72 + "\n")
         n_ok = sum(1 for _, _, ok in rows if ok)
-        summary = f"write-reference: {n_ok}/{len(rows)} cells pass (failures={failures})"
+        summary = (f"write-reference: {n_ok}/{len(rows)} cells pass "
+                   f"+ 2 extra samples (failures={failures})")
         log.write(summary + "\n")
         print(summary)
         if failures == 0:
@@ -362,6 +365,134 @@ def is_nan_chunk(chunk, fmt, big):
     """Chunk bytes decode to a float NaN encoding (any payload)."""
     (v,) = struct.unpack((">" if big else "<") + fmt, chunk)
     return math.isnan(v)
+
+
+def check_extra_samples(log):
+    """多维索引顺序 + 空间元数据外部读取验证（pynrrd 独立读）。
+
+    1. multi2x3x2_att.nrrd — 2x3x2 int16，值 = 100*i + 10*j + k。
+       pynrrd 默认 index_order='F'，shape == sizes == (2,3,2)，
+       data[i,j,k] 对应 sizes[0]=i：逐格核对索引顺序（1-D 自读
+       往返无法发现轴序错误）。
+    2. spatial_meta_det.nhdr — 2x3 double 在 named 3-D space 中，
+       带 labels / space origin / space directions / space units /
+       kinds。数组维度(2) != 空间维度(3)，逐字段外部核对。
+    """
+    import nrrd  # noqa: PLC0415 — 与 main() 同源的本地 venv 依赖
+    rows = []
+
+    # ---- 1. multi-dim index order ----
+    fpath = os.path.join(OUT_DIR, "multi2x3x2_att.nrrd")
+    ok = True
+    status = []
+    try:
+        data, hdr = nrrd.read(fpath)
+        if tuple(data.shape) != (2, 3, 2):
+            ok = False
+            status.append(f"shape {data.shape} != (2,3,2)")
+        if str(data.dtype.name) != "int16":
+            ok = False
+            status.append(f"dtype {data.dtype} != int16")
+        if int(hdr.get("dimension", -1)) != 3:
+            ok = False
+            status.append(f"dimension {hdr.get('dimension')}")
+        if "content" in hdr and hdr["content"] != "extra/multi2x3x2":
+            ok = False
+            status.append(f"content {hdr.get('content')!r}")
+        for i in range(2):
+            for j in range(3):
+                for k in range(2):
+                    want = 100 * i + 10 * j + k
+                    got = int(data[i, j, k])
+                    if got != want:
+                        ok = False
+                        status.append(f"data[{i},{j},{k}]={got} != {want}")
+        status.append("index order data[i,j,k]==100i+10j+k" if ok else "index order BROKEN")
+    except Exception as e:  # noqa: BLE001
+        ok = False
+        status.append(f"pynrrd error: {e}")
+    rows.append(("multi2x3x2/index-order", "; ".join(status), ok))
+
+    # ---- 2. spatial metadata external read ----
+    fpath = os.path.join(OUT_DIR, "spatial_meta_det.nhdr")
+    ok = True
+    status = []
+    want_vals = [0.0, -0.0, 1.0, -1.5, 0.1, 2.5]
+    try:
+        data, hdr = nrrd.read(fpath)
+        if tuple(data.shape) != (2, 3):
+            ok = False
+            status.append(f"shape {data.shape} != (2,3)")
+        got_flat = data.reshape(-1).tolist()
+        # NRRD 文件序 = sizes[0] 最快轴（F 序）；reshape(-1) 是 C 序，
+        # 因此按 data[i,j] 对照文件位置 i + sizes[0]*j 的期望值。
+        for j in range(3):
+            for i in range(2):
+                g = float(data[i, j])
+                w = want_vals[i + 2 * j]
+                if not sem_eq(g, w):
+                    ok = False
+                    status.append(f"data[{i},{j}] {g!r} != {w!r}")
+        del got_flat
+        # labels (per array axis)
+        labels = tuple(str(x) for x in hdr.get("labels", ()))
+        if labels != ("row", "col"):
+            ok = False
+            status.append(f"labels {labels!r}")
+        # kinds (per array axis)
+        kinds = tuple(str(x) for x in hdr.get("kinds", ()))
+        if kinds != ("domain", "domain"):
+            ok = False
+            status.append(f"kinds {kinds!r}")
+        # space name
+        space = str(hdr.get("space", "")).lower()
+        if space != "right-anterior-superior":
+            ok = False
+            status.append(f"space {space!r}")
+        # space origin (space dimension = 3)
+        origin = hdr.get("space origin")
+        origin_t = tuple(float(x) for x in origin) if origin is not None else ()
+        if len(origin_t) != 3 or any(
+            not sem_eq(o, w) for o, w in zip(origin_t, (1.5, 0.0, -2.0))
+        ):
+            ok = False
+            status.append(f"space origin {origin_t!r}")
+        # space directions (2 rows, each a 3-vector; pynrrd may give
+        # masked entries / tuples — compare numerically when present)
+        dirs = hdr.get("space directions")
+        if dirs is None:
+            ok = False
+            status.append("space directions missing")
+        else:
+            want_dirs = [(1.5, 0.0, 0.0), (0.0, 1.5, 0.0)]
+            if len(dirs) != 2:
+                ok = False
+                status.append(f"directions rows {len(dirs)} != 2")
+            else:
+                for r, (row, want_row) in enumerate(zip(dirs, want_dirs)):
+                    row_t = tuple(float(x) for x in row)
+                    if len(row_t) != 3 or any(
+                        not sem_eq(a, b) for a, b in zip(row_t, want_row)
+                    ):
+                        ok = False
+                        status.append(f"directions[{r}] {row_t!r} != {want_row!r}")
+        # space units (space dimension = 3)
+        units = tuple(str(x) for x in hdr.get("space units", ()))
+        if units != ("mm", "mm", "mm"):
+            ok = False
+            status.append(f"space units {units!r}")
+        if ok:
+            status.append("labels/kinds/space/origin/directions/units all match")
+    except Exception as e:  # noqa: BLE001
+        ok = False
+        status.append(f"pynrrd error: {e}")
+    rows.append(("spatial-meta/external-read", "; ".join(status), ok))
+
+    for combo_id, detail, ok in rows:
+        mark = "PASS" if ok else "FAIL"
+        log.write(f"{mark}  {combo_id:24s}  {detail}\n")
+        print(f"{mark}  {combo_id:24s}  {detail}")
+    return sum(1 for _, _, ok in rows if not ok)
 
 
 if __name__ == "__main__":
