@@ -176,6 +176,14 @@ fn split_ws_tokens(s : String) -> Array[String] {
 }
 
 ///| Tokens of quoted strings (`"a" "b"`) or bare words (kinds).
+///| Inside double quotes the ONLY escape is `\"` (spec §1.6: "double
+///| quotes may be included by escaping them (`\"`), but no other form
+///| of escaping is supported") — a backslash before anything else is
+///| a literal backslash. NOTE: pynrrd lexes quoted lists with POSIX
+///| shlex rules, where `\\` collapses to one backslash; files whose
+///| labels contain backslashes may therefore differ between readers.
+///| The write path rejects backslashes in quoted strings (see
+///| encode.mbt) so its output is unambiguous for every reader.
 fn parse_quoted_tokens(s : String) -> Array[String] {
   let out : Array[String] = []
   let n = s.length()
@@ -189,14 +197,22 @@ fn parse_quoted_tokens(s : String) -> Array[String] {
     }
     if char_at(s, i) == '"' {
       i = i + 1
-      let start = i
-      while i < n && char_at(s, i) != '"' {
-        i = i + 1
+      let buf = StringBuilder()
+      let mut closed = false
+      while i < n && !closed {
+        let c = char_at(s, i)
+        if c == '\\' && i + 1 < n && char_at(s, i + 1) == '"' {
+          buf.write_char('"')
+          i = i + 2
+        } else if c == '"' {
+          closed = true
+          i = i + 1
+        } else {
+          buf.write_char(c)
+          i = i + 1
+        }
       }
-      out.push(slice_str(s, start, i))
-      if i < n {
-        i = i + 1
-      }
+      out.push(buf.to_string())
     } else {
       let start = i
       while i < n && !is_ws(char_at(s, i)) {

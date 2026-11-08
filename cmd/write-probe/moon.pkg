@@ -1,0 +1,9 @@
+import {
+  "DDD12345-D/moon-nrrd" @nrrd,
+  "moonbitlang/x/fs",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"
