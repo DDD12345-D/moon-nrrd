@@ -7,7 +7,7 @@ commands: moon run --target js cmd/write-probe -- <out>; python tests/check_writ
 semantics: nan==nan; +-inf signed; zero signed; rest exact
 golden: payload == python struct.pack (byte-exact; BE proven by explicit big-endian packing)
 ========================================================================
-+ C:/Users/ddd/Desktop/黑客松/zvm-research/toolchain/runtime/bin/moon.exe run --target js cmd/write-probe -- C:\Users\ddd\Desktop\黑客松\moon-nrrd\tests\out\write-ref
++ <moon_bin> run --target js cmd/write-probe -- <repo>\tests\out\write-ref
 int8/raw-le/att	int8_rawle_att.nrrd	-
 int8/raw-le/det	int8_rawle_det.nhdr	int8_rawle_det.raw
 int8/raw-be/att	int8_rawbe_att.nrrd	-

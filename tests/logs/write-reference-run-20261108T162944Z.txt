@@ -7,7 +7,7 @@ commands: moon run --target js cmd/write-probe -- <out>; python tests/check_writ
 semantics: nan==nan; +-inf signed; zero signed; rest exact
 golden: payload == python struct.pack (byte-exact; BE proven by explicit big-endian packing)
 ========================================================================
-+ C:\Users\ddd\Desktop\黑客松\zvm-research\toolchain\runtime/bin/moon.exe run --target js cmd/write-probe -- C:\Users\ddd\Desktop\黑客松\moon-nrrd\tests\out\write-ref
++ <base>\zvm-research\toolchain\runtime/bin/moon.exe run --target js cmd/write-probe -- <repo>\tests\out\write-ref
 int8/raw-le/att	int8_rawle_att.nrrd	-
 int8/raw-le/det	int8_rawle_det.nhdr	int8_rawle_det.raw
 int8/raw-be/att	int8_rawbe_att.nrrd	-
@@ -60,42 +60,42 @@ extra/multi2x3x2	multi2x3x2_att.nrrd	-
 extra/spatial-meta	spatial_meta_det.nhdr	spatial_meta_det.raw
 [stderr]
 Warning: [0071]
-    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:34:54 ]
+    ╭─[ <repo>\cmd\write-probe\main.mbt:34:54 ]
     │
  34 │       1.1754943508222875e-38, 1.401298464324817e-45, @double.not_a_number, @double.infinity,
     │                                                      ──────────┬─────────  
     │                                                                ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
 ────╯
 Warning: [0071]
-    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:34:76 ]
+    ╭─[ <repo>\cmd\write-probe\main.mbt:34:76 ]
     │
  34 │       1.1754943508222875e-38, 1.401298464324817e-45, @double.not_a_number, @double.infinity,
     │                                                                            ────────┬───────  
     │                                                                                    ╰───────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
 ────╯
 Warning: [0071]
-    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:35:7 ]
+    ╭─[ <repo>\cmd\write-probe\main.mbt:35:7 ]
     │
  35 │       @double.neg_infinity,
     │       ──────────┬─────────  
     │                 ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
 ────╯
 Warning: [0071]
-    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:39:42 ]
+    ╭─[ <repo>\cmd\write-probe\main.mbt:39:42 ]
     │
  39 │       2.2250738585072014e-308, 5.0e-324, @double.not_a_number, @double.infinity,
     │                                          ──────────┬─────────  
     │                                                    ╰─────────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
 ────╯
 Warning: [0071]
-    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:39:64 ]
+    ╭─[ <repo>\cmd\write-probe\main.mbt:39:64 ]
     │
  39 │       2.2250738585072014e-308, 5.0e-324, @double.not_a_number, @double.infinity,
     │                                                                ────────┬───────  
     │                                                                        ╰───────── Warning (core_package_not_imported): Package `double` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
 ────╯
 Warning: [0071]
-    ╭─[ C:\Users\ddd\Desktop\黑客松\moon-nrrd\cmd\write-probe\main.mbt:40:7 ]
+    ╭─[ <repo>\cmd\write-probe\main.mbt:40:7 ]
     │
  40 │       @double.neg_infinity,
     │       ──────────┬─────────  
