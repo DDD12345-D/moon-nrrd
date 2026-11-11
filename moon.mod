@@ -19,11 +19,11 @@ repository = "https://github.com/DDD12345-D/moon-nrrd.git"
 
 license = "Apache-2.0"
 
-keywords = []
+keywords = ["nrrd", "nhdr", "scientific", "imaging", "voxel", "grid", "teem", "parse", "encode"]
 
 preferred_target = "wasm"
 
-description = ""
+description = "Pure MoonBit NRRD read-write library: NRRD0005 header parse, data decode, and symmetric serialization (8 numeric types, raw LE/BE + ASCII, attached/detached)"
 
 import {
   "moonbitlang/x@0.5.7",
