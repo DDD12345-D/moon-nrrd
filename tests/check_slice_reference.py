@@ -15,8 +15,17 @@ Exit: 0 = all pass, 1 = mismatch, 2 = usage.
 """
 import sys
 import os
+import math
 import numpy as np
 import nrrd
+
+
+def safe_float_eq(a, b, tol=1e-9):
+    """Float comparison that explicitly rejects NaN.  abs(NaN)>tol is False
+    in IEEE 754, which would let NaN pass a naive check."""
+    if math.isnan(a) or math.isnan(b):
+        return False
+    return abs(a - b) <= tol
 
 FORMULA = "value(x,y,z) = 100*x + 10*y + z"
 ORIG_SIZES = (3, 4, 5)
@@ -136,7 +145,7 @@ def main():
         errors.append("ax0 missing 'space origin'")
     else:
         for i in range(3):
-            if abs(ax0_origin[i] - expected_ax0_origin[i]) > 1e-9:
+            if not safe_float_eq(ax0_origin[i], expected_ax0_origin[i]):
                 errors.append(
                     f"ax0 origin[{i}]={ax0_origin[i]} != {expected_ax0_origin[i]}"
                 )
@@ -153,7 +162,7 @@ def main():
                 zip(ax0_dirs, (ORIG_DIRS[1], ORIG_DIRS[2]))
             ):
                 for i in range(3):
-                    if abs(actual_row[i] - expected_row[i]) > 1e-9:
+                    if not safe_float_eq(actual_row[i], expected_row[i]):
                         errors.append(
                             f"ax0 dirs[{row_idx}][{i}]={actual_row[i]} != {expected_row[i]}"
                         )
@@ -200,7 +209,7 @@ def main():
         errors.append("ax1 missing 'space origin'")
     else:
         for i in range(3):
-            if abs(ax1_origin[i] - expected_ax1_origin[i]) > 1e-9:
+            if not safe_float_eq(ax1_origin[i], expected_ax1_origin[i]):
                 errors.append(
                     f"ax1 origin[{i}]={ax1_origin[i]} != {expected_ax1_origin[i]}"
                 )
@@ -217,7 +226,7 @@ def main():
                 zip(ax1_dirs, (ORIG_DIRS[0], ORIG_DIRS[2]))
             ):
                 for i in range(3):
-                    if abs(actual_row[i] - expected_row[i]) > 1e-9:
+                    if not safe_float_eq(actual_row[i], expected_row[i]):
                         errors.append(
                             f"ax1 dirs[{row_idx}][{i}]={actual_row[i]} != {expected_row[i]}"
                         )

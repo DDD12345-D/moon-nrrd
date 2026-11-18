@@ -11,8 +11,17 @@ Exit: 0 = all pass, 1 = mismatch, 2 = usage.
 """
 import sys
 import os
+import math
 import numpy as np
 import nrrd
+
+
+def safe_float_eq(a, b, tol=1e-9):
+    """Float comparison that explicitly rejects NaN.  abs(NaN)>tol is False
+    in IEEE 754, which would let NaN pass a naive check."""
+    if math.isnan(a) or math.isnan(b):
+        return False
+    return abs(a - b) <= tol
 
 FORMULA = "value(x,y,z) = 100*x + 10*y + z"
 START = (1, 1, 0)
@@ -85,7 +94,7 @@ def main():
         else:
             crop_origin = tuple(float(v) for v in crop_origin_raw)
         for i in range(3):
-            if abs(crop_origin[i] - EXPECTED_CROP_ORIGIN[i]) > 1e-9:
+            if not safe_float_eq(crop_origin[i], EXPECTED_CROP_ORIGIN[i]):
                 errors.append(
                     f"crop origin[{i}]={crop_origin[i]} != {EXPECTED_CROP_ORIGIN[i]}"
                 )
@@ -96,7 +105,7 @@ def main():
         for c in range(3)
     )
     for i in range(3):
-        if abs(manual_origin[i] - EXPECTED_CROP_ORIGIN[i]) > 1e-9:
+        if not safe_float_eq(manual_origin[i], EXPECTED_CROP_ORIGIN[i]):
             errors.append(
                 f"manual origin[{i}]={manual_origin[i]} != {EXPECTED_CROP_ORIGIN[i]}"
             )
@@ -123,7 +132,7 @@ def main():
                 zip(crop_dirs, DIRECTIONS)
             ):
                 for i in range(3):
-                    if abs(actual_row[i] - expected_row[i]) > 1e-9:
+                    if not safe_float_eq(actual_row[i], expected_row[i]):
                         errors.append(
                             f"crop dirs[{row_idx}][{i}]={actual_row[i]} != {expected_row[i]}"
                         )
