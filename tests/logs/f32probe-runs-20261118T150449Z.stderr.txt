@@ -1,0 +1,9 @@
+error: abc: ascii: cannot parse float 'abc'
+error: 1.2.3: ascii: cannot parse float '1.2.3'
+error: --1: ascii: cannot parse float '--1'
+error: 1e: ascii: cannot parse float '1e'
+error: e3: ascii: cannot parse float 'e3'
+error: 1.5.5: ascii: cannot parse float '1.5.5'
+error: 0.000000000000000000000000000000000000000000000000000000000000001: ascii: numeric token too long (65 bytes)
+error: 11111111111111111111111111111111111111111111111111111111111111111: ascii: numeric token too long (65 bytes)
+f32probe: 75 tokens processed, 8 rejected

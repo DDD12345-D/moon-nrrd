@@ -88,10 +88,13 @@ js 后端实测不稳定，日志如实标注）。嵌入式补充：`write_roun
 
 ## 已知口径边界（不宣称的能力）
 
-- `float`（binary32）ASCII 十进制解析走 **decimal → binary64 → binary32**，
-  是**范围契约**而非全称正确舍入：该两次舍入路径与直接 decimal → binary32
-  在极端十进制字面值上存在双重舍入差异（案例见
-  `fixtures/double_rounding_case.json`）；不宣称所有十进制正确舍入。
+- `float`（binary32）ASCII 十进制解析为 **decimal → binary32 直接正确
+  舍入**（nearest、ties-to-even，单一最终舍入，无 binary64 中间步）。
+  对 **≤64 字节的十进制 token 全称正确舍入**；独立精确参考
+  （`reference_f32.py`，Fraction 整数/有理构造）与边界电池
+  （`f32_tokens.txt` / `f32_expected.tsv`）可复跑比对（`cmd/f32probe`
+  提供新解析路径真实输出）。历史上两步解析的双重舍入案例见
+  `fixtures/double_rounding_case.json`（现按直接舍入读取）。
 - ASCII 数值 token 长度上限 **64 字节是实现限制**（流式解析的单 token
   工作内存上限），不是 NRRD 格式非法判定；超长 token 被本读取器拒绝
   并报错，不代表该文件在规范意义上非法。
@@ -99,9 +102,7 @@ js 后端实测不稳定，日志如实标注）。嵌入式补充：`write_roun
   只约束元素个数，不是 OOM 不可能性证明——峰值内存可能超过
   count×8 字节（逐元素开销、中间数组、ASCII token 缓冲）；
   512 MiB 输入上限是宿主读取前的限制建议，**不是 wasm 安全证明**。
-- 2 个空间头补充样例只覆盖**头部解析**（space/space directions 等字段
-  的解析与校验）；空间 API（crop/slice 伴随数据、world 坐标换算
-  world=origin+Σidx·dir）**尚未实现**，不得提前计入完成范围。
+- 这两个旧样例只验证空间头解析。裁剪和切片由各自的测试与外部读回验证。
 - int64/uint64/block 与 hex/gzip/bzip2 编码显式拒绝（不在 v1 范围）。
 - 写侧只生成 **NRRD0005**；labels/space units 中的反斜杠**拒绝写出**
   （规范无 `\\` 转义、pynrrd shlex 会折叠 `\\`——跨实现无法安全往返）；

@@ -177,12 +177,9 @@ fn decode_raw(
 }
 
 ///| ASCII float32 value: spec §2 nan/-inf/inf substring rules,
-///| then rounded to binary32 (NRRD "float"). Range contract: the
-///| path is decimal → binary64 → binary32 (two roundings); it is
-///| NOT claimed to be correctly rounded for every decimal literal
-///| — extreme literals can differ from direct decimal → binary32
-///| (case in tests/fixtures/double_rounding_case.json). Overflow
-///| saturates to ±inf, matching numpy float32 parsing.
+///| then DIRECT decimal → binary32 correct rounding (nearest,
+///| ties-to-even).  No binary64 intermediate.  Overflow saturates
+///| to ±inf; underflow to ±0 (signed).
 fn ascii_float_token(tok : String) -> Double raise NrrdError {
   let t = tok.to_lower()
   if t.contains("nan") {
@@ -194,10 +191,8 @@ fn ascii_float_token(tok : String) -> Double raise NrrdError {
   if t.contains("inf") {
     return @double.infinity
   }
-  match parse_double_str(tok) {
-    Some(v) => Float::to_double(Float::from_double(v))
-    None => raise NrrdError("ascii: cannot parse float '\{tok}'")
-  }
+  let bits = f32_direct_bits(tok)
+  Float::to_double(Float::reinterpret_from_int(bits))
 }
 
 ///| ASCII binary64 value: same special-value rules; finite values

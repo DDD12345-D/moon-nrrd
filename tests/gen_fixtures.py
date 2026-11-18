@@ -521,8 +521,13 @@ def double_rounding_demo():
         "token": token,
         "via_binary64_then_binary32": expected_bits_hex(via64),
         "direct_binary32": expected_bits_hex(direct),
+        "current_behavior": "本实现现走直接 decimal->binary32 正确舍入（f32_direct_bits），"
+                            "此 token 的 binary32 位型为 0x3f800001（对应 direct_binary32 列，"
+                            "该列为值扩展成 binary64 的位型）",
         "note": "decimal->binary64->binary32 与直接 decimal->binary32 在此 token 上不同；"
-                "本实现走前者（与 Float::from_double 一致），不宣称所有十进制正确舍入",
+                "两步解析路径已于浮点修复中移除，读写两侧均按直接正确舍入执行"
+                "（nearest、ties-to-even，64 字节 token 内全称正确舍入）；"
+                "via_binary64_then_binary32 列仅作历史对照保留",
     }
 
 

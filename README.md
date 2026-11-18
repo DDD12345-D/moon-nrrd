@@ -35,9 +35,9 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
 - NaN：只承诺语义（nan==nan）；payload/signaling 位不承诺（js 后端已实测
   不稳定，见 tests/logs/write-reference-run-*.txt 的如实标注）。
 - ASCII：整数走精确十进制 Int64 文本（不经有损浮点格式化）；float32 写
-  **经读路径验证的最短往返串**（decimal → binary64 → binary32 两步解析
-  逐 token 验证后输出）；double 写 binary64 最短往返串；特值 nan/inf/
-  -inf/±0.0 单独语义测试。
+  **经读路径验证的最短往返串**（候选串用读端同款直接舍入解析器
+  f32_direct_bits 逐 token 验回位型后输出）；double 写 binary64 最短
+  往返串；特值 nan/inf/-inf/±0.0 单独语义测试。
 
 ## 写侧字符串策略（防注入，按规范转义）
 
@@ -60,11 +60,14 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
 
 ## 已知口径边界
 
-- **ASCII float32 范围契约**：解析路径为 decimal → binary64 → binary32
-  两次舍入，不宣称对所有十进制字面值正确舍入；极端字面值与直接
-  decimal → binary32 存在双重舍入差异（案例见
-  `tests/fixtures/double_rounding_case.json`）。写侧输出的 float32 ASCII
-  token 均已按读路径逐个验证往返，不受此差异影响。
+- **ASCII float32 正确舍入契约**：解析路径为 **decimal → binary32 直接
+  正确舍入**（nearest、ties-to-even，无 binary64 中间步；大整数定点
+  舍入实现，单一最终舍入）。对 **≤64 字节的任意十进制 token 全称
+  正确舍入**；原 decimal → binary64 → binary32 两步解析的双重舍入
+  反例（`tests/fixtures/double_rounding_case.json` 中 token）现按直接
+  舍入给出 0x3f800001，行为由此改变。独立精确参考（整数/有理构造）
+  与边界电池见 `tests/reference_f32.py`、`tests/f32_tokens.txt`。
+  >64 字节 token 超出契约范围，读端拒绝（见下条）。
 - **ASCII token 长度上限 64 字节是读端实现限制**（流式解析的单 token
   工作内存上限），不是 NRRD 格式非法判定；写侧输出 token 均远短于上限。
 - **分配预算**（元素数 ≤ 2^24，可注入 `budget~`）是分配前的防御性下限，

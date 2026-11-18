@@ -706,29 +706,31 @@ fn round_sig_str(s : String, k : Int) -> String? {
 }
 
 ///| Shortest decimal round-trip token for one binary32 value under
-///| the READER's two-step parse (decimal -> binary64 -> binary32 via
-///| `Float::from_double`). The input double is first reduced to its
+///| the READER's direct decimal -> binary32 correct-rounding parse
+///| (f32_direct_bits). The input double is first reduced to its
 ///| nearest binary32 (ties-to-even; overflow saturates to +-inf,
 ///| underflow keeps the sign of zero) — the token describes THAT
 ///| stored value, so zero/inf/nan are decided AFTER narrowing
 ///| (必修 2: deciding specials on the pre-narrow double loses the
 ///| sign of a negative underflow like -1.0e-50 -> -0.0). Candidate
 ///| strings are verified by parsing back through the exact read
-///| path with sign-aware comparison (f32_step_eq), so the result
-///| round-trips by construction (cross-check with
+///| path (f32_direct_bits) and comparing the binary32 bit pattern
+///| (sign-aware by construction), so the result round-trips under
+///| the same parser the reader uses (cross-check with
 ///| tests/fixtures/double_rounding_case.json).
 fn ascii_float32_token(v : Double) -> String {
   let w = Float::to_double(Float::from_double(v))
   match ascii_special_token(w) {
     Some(t) => t
     None => {
+      let target = Float::reinterpret_as_int(Float::from_double(v))
       let full = w.to_string()
       let mut k = 1
       while k <= 17 {
         match round_sig_str(full, k) {
-          Some(tok) => match parse_double_str(tok) {
-            Some(p) =>
-              if f32_step_eq(p, w) {
+          Some(tok) => match f32_bits_quiet(tok) {
+            Some(bits) =>
+              if bits == target {
                 return tok
               }
             None => ()
@@ -744,17 +746,14 @@ fn ascii_float32_token(v : Double) -> String {
   }
 }
 
-///| Candidate check for the float32 ASCII writer: parse the decimal
-///| token back through the reader's two-step parse and compare to
-///| the stored binary32 `w`. Equal as float32 AND, when both are
-///| zero, the sign of zero must match (IEEE `==` alone treats
-///| +0.0 == -0.0 as equal and would accept a sign-losing token).
-fn f32_step_eq(parsed : Double, w : Double) -> Bool {
-  let got = Float::to_double(Float::from_double(parsed))
-  if got == 0.0 && w == 0.0 {
-    is_neg_zero(got) == is_neg_zero(w)
-  } else {
-    got == w
+///| Non-raising wrapper around the reader's direct parser, used by
+///| the write-side round-trip verification (task: the writer must
+///| verify candidates with the SAME new parser the reader uses).
+fn f32_bits_quiet(tok : String) -> Int? {
+  try {
+    Some(f32_direct_bits(tok))
+  } catch {
+    NrrdError(_) => None
   }
 }
 
