@@ -6,7 +6,7 @@ Values are exchanged as `Double` in file linear order (`sizes[0]` = fastest
 axis). The core layer performs no file IO — assembly APIs return bytes and
 strings only.
 
-## Current scope (v0.1)
+## Current scope (v0.2)
 
 - **Types**: int8 / uint8 / int16 / uint16 / int32 / uint32 / float / double
   (int64 / uint64 explicitly rejected — beyond Double 2^53 value carrier)
@@ -17,6 +17,10 @@ strings only.
 - **Write**: `format_header` / `encode_data` / `assemble_attached` /
   `assemble_detached` (no IO, symmetric attached/detached output, NRRD0005);
   `format_keyval_line` provides spec-escaped key:=value tooling
+- **Data ops**: `crop_data` / `crop_meta` (dimension-preserving crop with real
+  value subset, space origin shifted) and `slice_data` / `slice_meta`
+  (dimension-reducing slice with real value subset), both updating spatial
+  metadata consistently
 - **Write strings are ASCII-only** (v1 contract): non-ASCII code points are
   rejected with `NrrdError`, never silently truncated (prevents header
   injection)
@@ -26,14 +30,14 @@ strings only.
 
 ## Planned (not yet implemented)
 
-- crop / slice carrying real data (with space origin/directions updates)
 - world-coordinate API (`world = origin + Σ idx·dir`)
 - unknown-field and `key:=value` round-trip preservation
 
 ## Known limitations
 
-- ASCII float32 decimal parsing goes decimal → binary64 → binary32 (double
-  rounding); not correctly rounded for all decimal literals
+- ASCII float32 decimal parsing is **decimal → binary32 direct correct
+  rounding** (nearest, ties-to-even, single final rounding — no binary64
+  intermediate step); correctly rounded for all decimal tokens up to 64 bytes
 - ASCII numeric token length capped at 64 bytes (implementation limit, not
   spec)
 - Compression (hex/gzip/bzip2/block), LIST multi-file, line/byte skip, and
