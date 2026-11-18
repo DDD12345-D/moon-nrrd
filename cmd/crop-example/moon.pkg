@@ -1,0 +1,8 @@
+import {
+  "DDD12345-D/moon-nrrd" @nrrd,
+
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"

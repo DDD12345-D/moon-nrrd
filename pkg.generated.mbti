@@ -10,6 +10,10 @@ pub fn assemble_detached(NrrdHeader, Array[Double], budget? : Int32) -> (Bytes, 
 
 pub fn bytes_to_ascii(Bytes) -> String
 
+pub fn crop_data(NrrdData, Array[Int32], Array[Int32], budget? : Int32) -> NrrdData raise NrrdError
+
+pub fn crop_meta(NrrdHeader, Array[Int32], Array[Int32]) -> NrrdHeader raise NrrdError
+
 pub fn decode_data(Bytes, NrrdHeader, budget? : Int32) -> Array[Double] raise NrrdError
 
 pub fn encode_data(Array[Double], NrrdHeader, budget? : Int32) -> Bytes raise NrrdError
@@ -46,6 +50,11 @@ pub(all) suberror NrrdError {
 }
 
 // Types and methods
+pub(all) struct NrrdData {
+  header : NrrdHeader
+  values : Array[Double]
+}
+
 pub(all) struct NrrdHeader {
   dimension : Int32
   sizes : Array[Int32]

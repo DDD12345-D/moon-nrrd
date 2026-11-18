@@ -17,8 +17,10 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
 - **写侧**：`format_header` / `encode_data` / `assemble_attached` /
   `assemble_detached`（无 IO，attached/detached 对称写出，只生成
   NRRD0005）；`format_keyval_line` 提供 key:=value 规范转义工具。
-- **未实现（不计入完成范围）**：crop/slice 携带数据、空间 API
-  （world=origin+Σidx·dir 换算）；空间样例目前只覆盖头部解析。
+- **数据操作**：`crop_data`（保维裁剪，携带真实值子集，同步更新 sizes
+  与 space origin）；`crop_meta`（仅元数据变换）。
+- **未实现（不计入完成范围）**：slice 降维携数据、空间 API
+  （world=origin+Σidx·dir 换算）。
 
 ## 写侧值策略（G2 v2 §7.1）
 
@@ -71,6 +73,24 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
 - 读端 `labels` 解析按规范仅识别 `\"` 转义；pynrrd 用 POSIX shlex（会把
   `\\` 折叠）——含反斜杠的 labels 在两实现间可能不一致（写侧拒绝产生
   此类输出）。
+
+## 数据裁剪（crop_data）
+
+```moonbit
+// 创建数据集：头 + 值（文件线性序，sizes[0] 最快）
+let d = NrrdData::{ header: hdr, values: vals }
+// 保维裁剪：start=(1,1,0), size=(1,2,2)
+// 输出 sizes=(1,2,2)，origin 同步偏移
+let result = crop_data(d, [1, 1, 0], [1, 2, 2])
+// result.header.space_origin = 原 origin + Σ start[i]·dir[i]
+// result.values = 原值子集（first-axis-fastest 线性序）
+```
+
+- 参数为 `start + size`（非半开区间），逐轴校验边界与溢出安全。
+- 完整空间信息时 origin 同步偏移；非空间轴（direction=none）不偏移。
+- 无空间信息可操作；部分空间信息在数据操作层明确拒绝。
+- 输入不可变；输出预算在分配前检查。
+- 完整示例：`cmd/crop-example/`。
 
 ## 测试
 
