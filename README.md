@@ -18,8 +18,10 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
   `assemble_detached`（无 IO，attached/detached 对称写出，只生成
   NRRD0005）；`format_keyval_line` 提供 key:=value 规范转义工具。
 - **数据操作**：`crop_data`（保维裁剪，携带真实值子集，同步更新 sizes
-  与 space origin）；`crop_meta`（仅元数据变换）。
-- **未实现（不计入完成范围）**：slice 降维携数据、空间 API
+  与 space origin）；`crop_meta`（仅元数据变换）；`slice_data`（降维切片，
+  固定一个轴的 index 并去掉该数组轴，携带真实值子集）；`slice_meta`
+  （仅元数据变换）。
+- **未实现（不计入完成范围）**：空间 API
   （world=origin+Σidx·dir 换算）。
 
 ## 写侧值策略（G2 v2 §7.1）
@@ -91,6 +93,23 @@ let result = crop_data(d, [1, 1, 0], [1, 2, 2])
 - 无空间信息可操作；部分空间信息在数据操作层明确拒绝。
 - 输入不可变；输出预算在分配前检查。
 - 完整示例：`cmd/crop-example/`。
+
+## 数据切片（slice_data）
+
+```moonbit
+// 降维切片：固定 axis=0 的 index=1，去掉该数组轴
+// 输入 3D → 输出 2D，其余轴保持 sizes[0] 最快
+let result = slice_data(d, 0, 1)
+// result.header.sizes = 去掉 axis 0 后的尺寸
+// result.header.space_origin = 原 origin + 1·direction[0]
+// result.values = 原值子集（剩余轴 first-axis-fastest 线性序）
+```
+
+- 固定一个轴的 index 并去掉该数组轴，保留其余轴相对顺序。
+- 完整空间信息时 `origin' = origin + index·direction[axis]`；none 轴不偏移。
+- 删除 sizes/labels/kinds/directions 对应轴项；space/space_dimension/space_units 不随数组轴删除。
+- 1D 切成 0D 明确拒绝；无空间信息可操作；部分空间信息拒绝。
+- 完整示例：`cmd/slice-probe/`（含 pynrrd 外部读回）。
 
 ## 测试
 

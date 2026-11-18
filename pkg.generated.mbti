@@ -40,6 +40,10 @@ pub fn normalize_type(String) -> String raise NrrdError
 
 pub fn parse_header(String) -> NrrdHeader raise NrrdError
 
+pub fn slice_data(NrrdData, Int32, Int32, budget? : Int32) -> NrrdData raise NrrdError
+
+pub fn slice_meta(NrrdHeader, Int32, Int32) -> NrrdHeader raise NrrdError
+
 pub fn split_header_body(Bytes) -> (Bytes, Bytes) raise NrrdError
 
 pub fn validate_header(NrrdHeader) -> Unit raise NrrdError

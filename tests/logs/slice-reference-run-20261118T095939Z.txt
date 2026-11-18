@@ -1,0 +1,22 @@
+moon-nrrd slice external read-back check
+utc: 20261118T095939Z
+commands: moon run --target js cmd/slice-probe -- <out>; python tests/check_slice_reference.py <out>
+semantics: value(x,y,z) = 100*x + 10*y + z; origin' = origin + index*direction[axis]
+fields: values, sizes, origin, directions, labels, units all compared as actual values
+========================================================================
+slice-probe/original	slice_orig_att.nrrd	-
+slice-probe/ax0idx1	slice_ax0_att.nrrd	-
+slice-probe/ax1idx2	slice_ax1_att.nrrd	-
+slice-probe: wrote slice_orig_att.nrrd + slice_ax0_att.nrrd + slice_ax1_att.nrrd
+------------------------------------------------------------------------
+OK slice_orig:  sizes + values match formula
+OK slice_ax0:   sizes + values + origin + directions + labels + units all match
+OK slice_ax1:   sizes + values + origin + directions + labels + units all match
+check_slice_reference: PASS  (value(x,y,z) = 100*x + 10*y + z)
+------------------------------------------------------------------------
+crop check upgraded to actual value comparison:
+OK crop_orig: sizes + values match formula
+OK crop_out:  sizes + values match hand-computed expectations
+OK crop_out:  space origin matches coordinate relation
+OK crop_out:  directions/labels/units values match originals
+check_crop_reference: PASS  (value(x,y,z) = 100*x + 10*y + z)

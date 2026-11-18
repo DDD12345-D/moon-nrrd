@@ -70,20 +70,20 @@ def main():
                 f"crop[0,{y2},{z2}]={actual} != {expected} (linear {linear_idx})"
             )
 
-    # --- space fields ---
-    # pynrrd exposes space origin via header
-    # NRRD field "space origin" -> hdr["space origin"] as tuple/array
-    crop_origin_str = crop_hdr.get("space origin")
-    if crop_origin_str is None:
+    # --- space fields (actual value comparison, not just existence) ---
+    # crop preserves all per-axis fields — compare against original values
+    crop_origin_raw = crop_hdr.get("space origin")
+    if crop_origin_raw is None:
         errors.append("crop missing 'space origin' field")
     else:
-        # pynrrd may return as string or numeric array
-        if isinstance(crop_origin_str, str):
+        if hasattr(crop_origin_raw, "tolist"):
+            crop_origin = tuple(float(v) for v in crop_origin_raw.tolist())
+        elif isinstance(crop_origin_raw, str):
             crop_origin = tuple(
-                float(v) for v in crop_origin_str.strip("()").split(",")
+                float(v) for v in crop_origin_raw.strip("()").split(",")
             )
         else:
-            crop_origin = tuple(float(v) for v in crop_origin_str)
+            crop_origin = tuple(float(v) for v in crop_origin_raw)
         for i in range(3):
             if abs(crop_origin[i] - EXPECTED_CROP_ORIGIN[i]) > 1e-9:
                 errors.append(
@@ -101,13 +101,66 @@ def main():
                 f"manual origin[{i}]={manual_origin[i]} != {EXPECTED_CROP_ORIGIN[i]}"
             )
 
-    # space directions: should be preserved (rows unchanged)
-    crop_dirs_str = crop_hdr.get("space directions")
-    if crop_dirs_str is None:
+    # space directions: compare ACTUAL VALUES (crop preserves all rows)
+    crop_dirs_raw = crop_hdr.get("space directions")
+    if crop_dirs_raw is None:
         errors.append("crop missing 'space directions' field")
-    # labels preserved
-    if "labels" not in crop_hdr:
+    else:
+        if hasattr(crop_dirs_raw, "tolist"):
+            crop_dirs = [tuple(float(v) for v in row.tolist()) for row in crop_dirs_raw]
+        elif isinstance(crop_dirs_raw, str):
+            import re
+            groups = re.findall(r"\(([^)]*)\)", crop_dirs_raw)
+            crop_dirs = [
+                tuple(float(v.strip()) for v in g.split(",")) for g in groups
+            ]
+        else:
+            crop_dirs = [tuple(float(v) for v in row) for row in crop_dirs_raw]
+        if len(crop_dirs) != 3:
+            errors.append(f"crop dirs count={len(crop_dirs)} != 3")
+        else:
+            for row_idx, (actual_row, expected_row) in enumerate(
+                zip(crop_dirs, DIRECTIONS)
+            ):
+                for i in range(3):
+                    if abs(actual_row[i] - expected_row[i]) > 1e-9:
+                        errors.append(
+                            f"crop dirs[{row_idx}][{i}]={actual_row[i]} != {expected_row[i]}"
+                        )
+
+    # labels: compare ACTUAL VALUES (crop preserves all)
+    crop_labels_raw = crop_hdr.get("labels")
+    if crop_labels_raw is None:
         errors.append("crop missing 'labels' field")
+    else:
+        if hasattr(crop_labels_raw, "tolist"):
+            crop_labels = tuple(str(v) for v in crop_labels_raw.tolist())
+        elif isinstance(crop_labels_raw, str):
+            import re
+            parts = re.findall(r'"([^"]*)"', crop_labels_raw)
+            crop_labels = tuple(parts) if parts else tuple(crop_labels_raw.split())
+        else:
+            crop_labels = tuple(str(v) for v in crop_labels_raw)
+        expected_labels = ("x", "y", "z")
+        if crop_labels != expected_labels:
+            errors.append(f"crop labels={crop_labels} != {expected_labels}")
+
+    # space units: compare ACTUAL VALUES (crop preserves all)
+    crop_units_raw = crop_hdr.get("space units")
+    if crop_units_raw is None:
+        errors.append("crop missing 'space units' field")
+    else:
+        if hasattr(crop_units_raw, "tolist"):
+            crop_units = tuple(str(v) for v in crop_units_raw.tolist())
+        elif isinstance(crop_units_raw, str):
+            import re
+            parts = re.findall(r'"([^"]*)"', crop_units_raw)
+            crop_units = tuple(parts) if parts else tuple(crop_units_raw.split())
+        else:
+            crop_units = tuple(str(v) for v in crop_units_raw)
+        expected_units = ("mm", "mm", "mm")
+        if crop_units != expected_units:
+            errors.append(f"crop units={crop_units} != {expected_units}")
 
     # --- report ---
     if errors:
@@ -118,6 +171,7 @@ def main():
     print("OK crop_orig: sizes + values match formula")
     print("OK crop_out:  sizes + values match hand-computed expectations")
     print("OK crop_out:  space origin matches coordinate relation")
+    print("OK crop_out:  directions/labels/units values match originals")
     print(f"check_crop_reference: PASS  ({FORMULA})")
     sys.exit(0)
 

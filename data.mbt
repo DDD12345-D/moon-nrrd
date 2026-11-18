@@ -315,3 +315,222 @@ pub fn crop_data(
   }
   NrrdData::{ header: new_header, values: out_values }
 }
+
+///| Validate slice axis+index against a header without touching values.
+fn validate_slice_params(
+  h : NrrdHeader,
+  axis : Int,
+  index : Int,
+) -> Unit raise NrrdError {
+  let dim = h.dimension
+  if dim < 2 {
+    raise NrrdError(
+      "slice would produce 0-D output (dimension \{dim}); refusing",
+    )
+  }
+  if axis < 0 || axis >= dim {
+    raise NrrdError(
+      "axis \{axis} out of range [0, \{dim})",
+    )
+  }
+  if index < 0 || index >= h.sizes[axis] {
+    raise NrrdError(
+      "index \{index} out of range [0, \{h.sizes[axis]}) for axis \{axis}",
+    )
+  }
+}
+
+///| Slice metadata only (no value operation).  Fixes one axis at
+///| `index` and removes that array axis from sizes/labels/kinds/
+///| space_directions.  space/space_dimension/space_units are world-
+///| component fields and are NOT removed.  origin' = origin +
+///| index · direction[axis]; a `none` direction does not move origin.
+pub fn slice_meta(
+  h : NrrdHeader,
+  axis : Int,
+  index : Int,
+) -> NrrdHeader raise NrrdError {
+  validate_header(h)
+  validate_slice_params(h, axis, index)
+  // validate space consistency (raises on partial/inconsistent)
+  let sd_opt = effective_space_dim(h)
+  // new space origin = origin + index · direction[axis]
+  let new_origin : Array[Double]? = match (sd_opt, h.space_origin) {
+    (Some(_), Some(orig)) => {
+      let dir_row = if axis < h.space_directions.length() {
+        h.space_directions[axis]
+      } else {
+        None
+      }
+      match dir_row {
+        Some(dir_vec) => {
+          let o = orig.copy()
+          if index != 0 {
+            for c = 0; c < o.length(); c = c + 1 {
+              o[c] = o[c] + index.to_double() * dir_vec[c]
+            }
+          }
+          Some(o)
+        }
+        None => Some(orig.copy()) // none direction: no offset
+      }
+    }
+    _ => h.space_origin
+  }
+  // remove the sliced axis from per-axis fields
+  let new_sizes : Array[Int] = []
+  for i = 0; i < h.dimension; i = i + 1 {
+    if i != axis {
+      new_sizes.push(h.sizes[i])
+    }
+  }
+  let new_labels : Array[String]? = match h.labels {
+    Some(ls) => {
+      let out = Array::make(ls.length() - 1, "")
+      let mut k = 0
+      for i = 0; i < ls.length(); i = i + 1 {
+        if i != axis {
+          out[k] = ls[i]
+          k = k + 1
+        }
+      }
+      Some(out)
+    }
+    None => None
+  }
+  let new_kinds : Array[String]? = match h.kinds {
+    Some(ks) => {
+      let out = Array::make(ks.length() - 1, "")
+      let mut k = 0
+      for i = 0; i < ks.length(); i = i + 1 {
+        if i != axis {
+          out[k] = ks[i]
+          k = k + 1
+        }
+      }
+      Some(out)
+    }
+    None => None
+  }
+  let new_dirs : Array[Array[Double]?] = []
+  for i = 0; i < h.space_directions.length(); i = i + 1 {
+    if i != axis {
+      new_dirs.push(
+        match h.space_directions[i] {
+          Some(v) => Some(v.copy())
+          None => None
+        }
+      )
+    }
+  }
+  // space / space_dimension / space_units: world-component, unchanged
+  NrrdHeader::{
+    dimension: h.dimension - 1,
+    sizes: new_sizes,
+    type_name: h.type_name,
+    encoding: h.encoding,
+    endian: h.endian,
+    data_file: h.data_file,
+    space: h.space,
+    space_dimension: h.space_dimension,
+    space_origin: new_origin,
+    space_directions: new_dirs,
+    space_units: match h.space_units {
+      Some(us) => Some(us.copy())
+      None => None
+    },
+    labels: new_labels,
+    kinds: new_kinds,
+    content: h.content,
+    line_skip: h.line_skip,
+    byte_skip: h.byte_skip,
+  }
+}
+
+///| Slice a dataset (dimension-reducing): fix one axis at `index`
+///| and remove that array axis.  Remaining axes keep their relative
+///| order with sizes[0] fastest.  Real value subset extraction via
+///| first-axis-fastest stride mapping.
+///|
+///| The input NrrdData and its arrays are never mutated.
+pub fn slice_data(
+  d : NrrdData,
+  axis : Int,
+  index : Int,
+  budget~ : Int = max_data_elements(),
+) -> NrrdData raise NrrdError {
+  // 1. validate header independently
+  validate_header(d.header)
+  // 2. entry shape check: values count must match product of sizes
+  let expected = data_product(d.header.sizes)
+  if d.values.length() != expected {
+    raise NrrdError(
+      "values count \{d.values.length()} does not match product of sizes \{expected}",
+    )
+  }
+  // 3. validate slice params (0D reject, axis/index bounds)
+  validate_slice_params(d.header, axis, index)
+  // 4. validate space consistency (raises on partial/inconsistent)
+  let _sd = effective_space_dim(d.header)
+  // 5. compute output sizes and element count
+  let dim = d.header.dimension
+  let out_sizes : Array[Int] = []
+  for i = 0; i < dim; i = i + 1 {
+    if i != axis {
+      out_sizes.push(d.header.sizes[i])
+    }
+  }
+  let out_count = data_product(out_sizes)
+  // 6. budget must be positive
+  if budget <= 0 {
+    raise NrrdError("budget must be positive, got \{budget}")
+  }
+  if out_count > budget {
+    raise NrrdError(
+      "refusing to slice to \{out_count} elements; budget is \{budget}",
+    )
+  }
+  // overflow-safe coexist check: input + output <= 2 * budget
+  let total64 = d.values.length().to_int64() + out_count.to_int64()
+  let limit64 = budget.to_int64() * 2L
+  if total64 > limit64 {
+    raise NrrdError(
+      "input(\{d.values.length()}) + output(\{out_count}) exceeds 2x budget",
+    )
+  }
+  // 7. compute input strides (first-axis-fastest)
+  let in_stride = Array::make(dim, 1)
+  for i = 1; i < dim; i = i + 1 {
+    in_stride[i] = in_stride[i - 1] * d.header.sizes[i - 1]
+  }
+  // precompute the base offset contributed by the fixed axis
+  let base_offset = index * in_stride[axis]
+  // 8. extract value subset
+  // For each output linear index, decode to output coords (out_sizes),
+  // then map to input coords by inserting `index` at position `axis`,
+  // then compute input linear index via in_stride.
+  let out_values = Array::make(out_count, 0.0)
+  let out_dim = dim - 1
+  for out_idx = 0; out_idx < out_count; out_idx = out_idx + 1 {
+    let mut rem = out_idx
+    let mut in_idx = base_offset
+    for ax = 0; ax < out_dim; ax = ax + 1 {
+      let coord = rem % out_sizes[ax]
+      rem = rem / out_sizes[ax]
+      // map output axis ax to input axis (ax if ax < axis, else ax+1)
+      let in_ax = if ax < axis { ax } else { ax + 1 }
+      in_idx = in_idx + coord * in_stride[in_ax]
+    }
+    out_values[out_idx] = d.values[in_idx]
+  }
+  // 9. compute new header (reuses slice_meta)
+  let new_header = slice_meta(d.header, axis, index)
+  // 10. verify output shape invariant
+  let verify = data_product(new_header.sizes)
+  if out_values.length() != verify {
+    raise NrrdError(
+      "output values \{out_values.length()} does not match new sizes product \{verify}",
+    )
+  }
+  NrrdData::{ header: new_header, values: out_values }
+}
