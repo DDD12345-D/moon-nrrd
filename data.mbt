@@ -110,7 +110,7 @@ fn effective_space_dim(h : NrrdHeader) -> Int? raise NrrdError {
           None => raise NrrdError("unreachable")
         }
       }
-      // now check consistency of orientation fields against sd
+      // space units: optional per existing contract (not made required here)
       match h.space_units {
         Some(us) =>
           if us.length() != sd {
@@ -120,6 +120,7 @@ fn effective_space_dim(h : NrrdHeader) -> Int? raise NrrdError {
           }
         None => ()
       }
+      // completeness: origin MUST exist with correct length
       match h.space_origin {
         Some(o) =>
           if o.length() != sd {
@@ -127,7 +128,15 @@ fn effective_space_dim(h : NrrdHeader) -> Int? raise NrrdError {
               "space origin count \{o.length()} does not match space dimension \{sd}",
             )
           }
-        None => ()
+        None => raise NrrdError(
+          "incomplete spatial info: missing space origin",
+        )
+      }
+      // completeness: directions row count MUST match array dimension
+      if h.space_directions.length() != h.dimension {
+        raise NrrdError(
+          "space directions count \{h.space_directions.length()} does not match dimension \{h.dimension}",
+        )
       }
       for row in h.space_directions {
         match row {
@@ -159,11 +168,19 @@ pub fn crop_meta(
   // recompute effective space dim (also validates consistency)
   let sd_opt = effective_space_dim(h)
   // new space origin = origin + Σ start_i · dir_i
+  // (effective_space_dim above guarantees origin exists and
+  //  directions has h.dimension rows when sd_opt is Some)
   let new_origin : Array[Double]? = match (sd_opt, h.space_origin) {
     (Some(_), Some(orig)) => {
       let o = orig.copy()
       for i = 0; i < h.dimension; i = i + 1 {
-        match h.space_directions[i] {
+        // defensive: safe access even if future code relaxes checks
+        let dir_row = if i < h.space_directions.length() {
+          h.space_directions[i]
+        } else {
+          None
+        }
+        match dir_row {
           Some(dir_vec) => {
             // only offset for non-none directions
             if start[i] != 0 {
@@ -249,16 +266,23 @@ pub fn crop_data(
   let _sd = effective_space_dim(d.header)
   // 5. compute output element count with overflow-safe product
   let out_count = data_product(size)
-  // 6. budget check before allocation
+  // 6. budget must be positive
+  if budget <= 0 {
+    raise NrrdError("budget must be positive, got \{budget}")
+  }
+  // budget check before allocation
   if out_count > budget {
     raise NrrdError(
       "refusing to crop to \{out_count} elements; budget is \{budget}",
     )
   }
-  // also check input+output coexist within a generous bound (2x)
-  if d.values.length() + out_count > budget * 2 {
+  // overflow-safe coexist check: input + output <= 2 * budget
+  // use Int64 intermediate to avoid Int32 overflow in budget * 2
+  let total64 = d.values.length().to_int64() + out_count.to_int64()
+  let limit64 = budget.to_int64() * 2L
+  if total64 > limit64 {
     raise NrrdError(
-      "input(\{d.values.length()}) + output(\{out_count}) exceeds 2x budget(\{budget * 2})",
+      "input(\{d.values.length()}) + output(\{out_count}) exceeds 2x budget",
     )
   }
   // 7. compute input strides (first-axis-fastest)

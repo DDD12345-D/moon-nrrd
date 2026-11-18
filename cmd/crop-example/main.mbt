@@ -30,14 +30,14 @@ fn main raise {
   }
   // Build 12 values: for (x,y,z) in [0,2)×[0,3)×[0,2):
   //   linear_idx = x + 2*y + 6*z  (first-axis-fastest)
-  //   value = 100*x + 10*y + z
+  //   value = 100*x + 10*y + z  (same formula as comment above)
   let vals = [
-    0.0, 1.0,    // (0,0,0) (1,0,0)
-    10.0, 11.0,  // (0,1,0) (1,1,0)
-    20.0, 21.0,  // (0,2,0) (1,2,0)
-    1.0, 2.0,    // (0,0,1) (1,0,1)
-    11.0, 12.0,  // (0,1,1) (1,1,1)
-    21.0, 22.0,  // (0,2,1) (1,2,1)
+    0.0, 100.0,    // (0,0,0) (1,0,0)  = 0, 100
+    10.0, 110.0,   // (0,1,0) (1,1,0)  = 10, 110
+    20.0, 120.0,   // (0,2,0) (1,2,0)  = 20, 120
+    1.0, 101.0,    // (0,0,1) (1,0,1)  = 1, 101
+    11.0, 111.0,   // (0,1,1) (1,1,1)  = 11, 111
+    21.0, 121.0,   // (0,2,1) (1,2,1)  = 21, 121
   ]
   let d = @nrrd.NrrdData::{ header: hdr, values: vals }
   println("=== Input ===")
@@ -47,7 +47,7 @@ fn main raise {
   // Crop: start=(1,1,0), size=(1,2,2)
   //   → output sizes = (1,2,2), 4 elements
   //   → output(x',y',z') = input(x'+1, y'+1, z'+0)
-  //   → values: (1,1,0)=11, (1,2,0)=21, (1,1,1)=12, (1,2,1)=22
+  //   → values: (1,1,0)=110, (1,2,0)=120, (1,1,1)=111, (1,2,1)=121
   //   → origin' = (10,-5,2.5) + 1*(1.5,0,0) + 1*(0,2,0) + 0*(0,0,2.5)
   //             = (11.5, -3.0, 2.5)
   let start = [1, 1, 0]
@@ -60,7 +60,7 @@ fn main raise {
   println("values: \{result.values.length()} elements")
   println("values: \{result.values[0]} \{result.values[1]} \{result.values[2]} \{result.values[3]}")
   // Expected output (hand-computed):
-  //   values = [11, 21, 12, 22]  (file linear order: x fastest)
+  //   values = [110, 120, 111, 121]  (file linear order: x fastest)
   //   sizes  = (1, 2, 2)
   //   origin = (11.5, -3.0, 2.5)
 }

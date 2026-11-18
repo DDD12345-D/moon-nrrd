@@ -2,6 +2,7 @@ import {
   "DDD12345-D/moon-nrrd" @nrrd,
   "moonbitlang/x/fs",
   "moonbitlang/core/env",
+  "moonbitlang/core/double",
 }
 
 pkgtype(kind: "executable")

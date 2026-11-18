@@ -1,0 +1,13 @@
+moon-nrrd crop external read-back check
+utc: 20261118T090351Z
+commands: moon run --target js cmd/crop-probe -- <out>; python tests/check_crop_reference.py <out>
+semantics: value(x,y,z) = 100*x + 10*y + z; origin' = origin + sum(start_i * dir_i)
+========================================================================
+crop-probe/original	crop_orig_att.nrrd	-
+crop-probe/cropped	crop_out_att.nrrd	-
+crop-probe: wrote crop_orig_att.nrrd + crop_out_att.nrrd
+------------------------------------------------------------------------
+OK crop_orig: sizes + values match formula
+OK crop_out:  sizes + values match hand-computed expectations
+OK crop_out:  space origin matches coordinate relation
+check_crop_reference: PASS  (value(x,y,z) = 100*x + 10*y + z)

@@ -284,16 +284,42 @@ test "crop: single element" {
   assert_eq(result.values[0], gen_linear(model_id(sizes, [2, 3])), msg="value")
 }
 
-///| C9: budget rejection.
+///| C9: budget rejection — small data with small budget.
 test "crop: budget rejection" {
-  let sizes = [100, 100, 100]
+  let sizes = [4, 4]
   let hdr = test_header(sizes)
-  let vals = Array::make(1000000, 1.0)
+  let vals = test_values(sizes, gen_linear)
   let d = NrrdData::{ header: hdr, values: vals }
+  // crop to 4 elements with budget=2 → reject
   assert_true(
-    try_crop_b(d, [0, 0, 0], [100, 100, 100], 100) == false,
+    try_crop_b(d, [0, 0], [2, 2], 2) == false,
     msg="must reject over-budget",
   )
+  // budget=0 → reject (non-positive)
+  assert_true(
+    try_crop_b(d, [0, 0], [1, 1], 0) == false,
+    msg="must reject zero budget",
+  )
+  // budget=-1 → reject (non-positive)
+  assert_true(
+    try_crop_b(d, [0, 0], [1, 1], -1) == false,
+    msg="must reject negative budget",
+  )
+}
+
+///| C9b: coexist check must not overflow — budget=2^30, tiny crop.
+test "crop: budget coexist check overflow-safe" {
+  // input has 2 values, crop to 1 value, budget=1073741824 (2^30)
+  // old code: budget*2 wraps to negative → wrongly rejects
+  let sizes = [2]
+  let hdr = test_header(sizes)
+  let vals = [10.0, 20.0]
+  let d = NrrdData::{ header: hdr, values: vals }
+  let big_budget = 1073741824
+  // should succeed: 2+1 = 3 <= 2*2^30 = 2^31 (fits in Int64)
+  let result = crop_data(d, [0], [1], budget = big_budget)
+  assert_eq(result.values.length(), 1, msg="count")
+  assert_eq(result.values[0], 10.0, msg="value")
 }
 
 ///| C10: immutability — input is not modified.
@@ -364,4 +390,131 @@ test "crop: space and space_dimension mutual exclusion rejected" {
   let vals = test_values(sizes, gen_linear)
   let d = NrrdData::{ header: hdr, values: vals }
   assert_true(try_crop(d, [0, 0], [1, 1]) == false, msg="must reject mutual exclusion")
+}
+
+// ========== Spatial completeness counter-examples (audit fixes) ==========
+
+///| C15: identity-only — space_dimension set but no origin/directions.
+test "crop: identity-only without origin/directions is rejected" {
+  let sizes = [2, 2]
+  let hdr = test_header(
+    sizes,
+    space_dim=Some(2),
+  )
+  let vals = test_values(sizes, gen_linear)
+  let d = NrrdData::{ header: hdr, values: vals }
+  assert_true(try_crop(d, [0, 0], [1, 1]) == false, msg="must reject identity-only")
+}
+
+///| C16: missing origin (directions present, origin absent) — counter-example B.
+test "crop: missing origin with directions is rejected" {
+  let sizes = [2]
+  let hdr = test_header(
+    sizes,
+    space_dim=Some(1),
+    origin=None,
+    dirs=[Some([1.0])],
+  )
+  let vals = test_values(sizes, gen_linear)
+  let d = NrrdData::{ header: hdr, values: vals }
+  assert_true(try_crop(d, [1], [1]) == false, msg="must reject missing origin")
+}
+
+///| C17: missing directions (origin present, directions absent) — counter-example A.
+test "crop: missing directions with origin is rejected" {
+  let sizes = [2]
+  let hdr = test_header(
+    sizes,
+    space_dim=Some(1),
+    origin=Some([0.0]),
+    dirs=[],
+  )
+  let vals = test_values(sizes, gen_linear)
+  let d = NrrdData::{ header: hdr, values: vals }
+  assert_true(try_crop(d, [0], [1]) == false, msg="must reject missing directions")
+}
+
+///| C18: directions row count ≠ dimension.
+test "crop: directions row count mismatch is rejected" {
+  let sizes = [2, 3]
+  let hdr = test_header(
+    sizes,
+    space_dim=Some(2),
+    origin=Some([0.0, 0.0]),
+    dirs=[Some([1.0, 0.0])], // 1 row but dimension=2
+  )
+  let vals = test_values(sizes, gen_linear)
+  let d = NrrdData::{ header: hdr, values: vals }
+  assert_true(try_crop(d, [0, 0], [1, 1]) == false, msg="must reject row count mismatch")
+}
+
+///| C19: none axis is legal when completeness holds.
+test "crop: none axis accepted when origin+directions complete" {
+  let sizes = [3, 3]
+  let hdr = test_header(
+    sizes,
+    space_dim=Some(2),
+    origin=Some([0.0, 0.0]),
+    dirs=[Some([1.0, 0.0]), None], // none on axis 1 is legal
+  )
+  let vals = test_values(sizes, gen_linear)
+  let d = NrrdData::{ header: hdr, values: vals }
+  let result = crop_data(d, [1, 1], [2, 2])
+  assert_eq(result.values.length(), 4, msg="count")
+  // origin' = (0,0) + 1*(1,0,0) + 1*none = (1,0)
+  let o = result.header.space_origin.unwrap()
+  assert_eq(o[0], 1.0, msg="origin[0]")
+  assert_eq(o[1], 0.0, msg="origin[1]")
+}
+
+///| C20: crop_meta directly — must not panic on incomplete fields.
+test "crop_meta: incomplete fields raise, not panic" {
+  // counter-example A shape: directions=[] with dimension=1
+  let h1 = test_header(
+    [2],
+    space_dim=Some(1),
+    origin=Some([0.0]),
+    dirs=[],
+  )
+  let mut ok1 = false
+  try {
+    let _r = crop_meta(h1, [0], [1])
+  } catch {
+    _ => ok1 = true
+  }
+  assert_true(ok1, msg="crop_meta must raise on missing directions")
+  // counter-example B shape: origin=None with directions
+  let h2 = test_header(
+    [2],
+    space_dim=Some(1),
+    origin=None,
+    dirs=[Some([1.0])],
+  )
+  let mut ok2 = false
+  try {
+    let _r = crop_meta(h2, [1], [1])
+  } catch {
+    _ => ok2 = true
+  }
+  assert_true(ok2, msg="crop_meta must raise on missing origin")
+}
+
+///| C21: complete spatial info accepted (regression guard).
+test "crop: complete spatial info accepted" {
+  let sizes = [2, 3]
+  let hdr = test_header(
+    sizes,
+    space=Some("right-anterior-superior"),
+    origin=Some([1.0, 2.0, 3.0]),
+    dirs=[Some([1.0, 0.0, 0.0]), Some([0.0, 1.0, 0.0])],
+    units=Some(["mm", "mm", "mm"]),
+  )
+  let vals = test_values(sizes, gen_linear)
+  let d = NrrdData::{ header: hdr, values: vals }
+  let result = crop_data(d, [1, 1], [1, 2])
+  assert_eq(result.values.length(), 2, msg="count")
+  let o = result.header.space_origin.unwrap()
+  assert_eq(o[0], 2.0, msg="origin[0]")
+  assert_eq(o[1], 3.0, msg="origin[1]")
+  assert_eq(o[2], 3.0, msg="origin[2]")
 }
