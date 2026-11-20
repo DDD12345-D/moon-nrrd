@@ -100,12 +100,36 @@ pub fn list_values_per_file(h : NrrdHeader, nfiles : Int) -> Int raise NrrdError
   }
 }
 
+///| Count whitespace-separated tokens in a byte buffer (ASCII values).
+fn count_ascii_tokens(data : Bytes) -> Int {
+  let n = data.length()
+  let mut count = 0
+  let mut i = 0
+  while i < n {
+    while i < n && is_ws_byte(data[i]) {
+      i = i + 1
+    }
+    if i >= n {
+      break
+    }
+    count = count + 1
+    while i < n && !is_ws_byte(data[i]) {
+      i = i + 1
+    }
+  }
+  count
+}
+
 ///| Validate and concatenate LIST data chunks into the full payload.
-///| For raw encoding each chunk's byte length must equal
-///| values_per_file × item_size exactly. For ascii encoding chunks
-///| are concatenated and the downstream decoder enforces the value
-///| count. Raises on chunk-count mismatch, size mismatch, or any
-///| layout error.
+///| Raw encoding: each chunk's byte length must equal
+///| values_per_file × item_size exactly.
+///| ASCII encoding: each chunk's token count must equal
+///| values_per_file exactly (per-chunk value counting); chunks are
+///| joined with a single space so that a chunk ending without
+///| trailing whitespace cannot merge its last token with the next
+///| chunk's first.
+///| Raises on chunk-count mismatch, per-chunk size/count mismatch,
+///| or any layout error.
 pub fn reassemble_list_data(
   chunks : Array[Bytes],
   h : NrrdHeader,
@@ -115,45 +139,83 @@ pub fn reassemble_list_data(
   }
   let vpf = list_values_per_file(h, chunks.length())
   let is_raw = h.encoding == "raw"
-  if is_raw {
-    let item = nrrd_item_size(h.type_name)
-    if vpf > 2147483647 / item {
-      raise NrrdError("per-file byte size overflow")
+  // Per-chunk validation
+  for idx = 0; idx < chunks.length(); idx = idx + 1 {
+    let name = match h.list_filenames {
+      Some(names) =>
+        if idx < names.length() {
+          names[idx]
+        } else {
+          "<chunk \{idx}>"
+        }
+      None => "<chunk \{idx}>"
     }
-    let need = vpf * item
-    for idx = 0; idx < chunks.length(); idx = idx + 1 {
+    if is_raw {
+      let item = nrrd_item_size(h.type_name)
+      if vpf > 2147483647 / item {
+        raise NrrdError("per-file byte size overflow")
+      }
+      let need = vpf * item
       let got = chunks[idx].length()
       if got != need {
-        let name = match h.list_filenames {
-          Some(names) =>
-            if idx < names.length() {
-              names[idx]
-            } else {
-              "<chunk \{idx}>"
-            }
-          None => "<chunk \{idx}>"
-        }
         raise NrrdError(
           "data file '\{name}': expected \{need} bytes, got \{got}",
+        )
+      }
+    } else {
+      // ASCII: per-chunk token count must match exactly
+      let got = count_ascii_tokens(chunks[idx])
+      if got != vpf {
+        raise NrrdError(
+          "data file '\{name}': expected \{vpf} values, got \{got}",
         )
       }
     }
   }
   // Concatenate
-  let mut total = 0
-  for chunk in chunks {
-    total = total + chunk.length()
-    if total < 0 {
-      raise NrrdError("total byte size overflow")
+  if is_raw {
+    let mut total = 0
+    for chunk in chunks {
+      total = total + chunk.length()
+      if total < 0 {
+        raise NrrdError("total byte size overflow")
+      }
     }
-  }
-  let arr : Array[Byte] = Array::make(total, b'\x00')
-  let mut at = 0
-  for chunk in chunks {
-    for i = 0; i < chunk.length(); i = i + 1 {
-      arr[at] = chunk[i]
-      at = at + 1
+    let arr : Array[Byte] = Array::make(total, b'\x00')
+    let mut at = 0
+    for chunk in chunks {
+      for i = 0; i < chunk.length(); i = i + 1 {
+        arr[at] = chunk[i]
+        at = at + 1
+      }
     }
+    Bytes::from_array(arr)
+  } else {
+    // ASCII: join chunks with a single space to prevent token merging
+    // when a chunk has no trailing whitespace.
+    let mut total = 0
+    for idx = 0; idx < chunks.length(); idx = idx + 1 {
+      total = total + chunks[idx].length()
+      if idx < chunks.length() - 1 {
+        total = total + 1 // separator
+      }
+      if total < 0 {
+        raise NrrdError("total byte size overflow")
+      }
+    }
+    let arr : Array[Byte] = Array::make(total, b'\x20')
+    let mut at = 0
+    for idx = 0; idx < chunks.length(); idx = idx + 1 {
+      let chunk = chunks[idx]
+      for i = 0; i < chunk.length(); i = i + 1 {
+        arr[at] = chunk[i]
+        at = at + 1
+      }
+      if idx < chunks.length() - 1 {
+        arr[at] = b'\x20' // space separator between chunks
+        at = at + 1
+      }
+    }
+    Bytes::from_array(arr)
   }
-  Bytes::from_array(arr)
 }

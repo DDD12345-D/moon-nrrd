@@ -233,3 +233,95 @@ test "list header detection and subdim helpers" {
   }
   assert_false(@moon-nrrd.is_list_header(h_plain))
 }
+
+// ── ASCII LIST 分片边界与逐片计数 ──────────────────────────────
+
+///| Build ASCII bytes from a string.
+fn ascii_chunk(s : String) -> Bytes raise @moon-nrrd.NrrdError {
+  @moon-nrrd.ascii_to_bytes(s)
+}
+
+///| T9: ASCII 分片尾无换行（token 粘连防护）。
+///| 2 片各 2 值，分片内容 "1 2" / "3 4"，无尾部空白。
+///| 不插分隔符时拼接为 "1 23 4"（3 token）；应插空格得 "1 2 3 4"。
+test "list ascii chunks without trailing newline reassemble correctly" {
+  let sizes = [2, 2]
+  let names = ["a.raw", "b.raw"]
+  try {
+    let h = list_hdr(sizes, names, encoding="ascii")
+    let chunks = [
+      ascii_chunk("1 2"),
+      ascii_chunk("3 4"),
+    ]
+    let err = reassemble_err(chunks, h)
+    assert_eq(err, "")
+    let out = @moon-nrrd.reassemble_list_data(chunks, h)
+    let s = @moon-nrrd.bytes_to_ascii(out)
+    assert_eq(s, "1 2 3 4")
+  } catch {
+    @moon-nrrd.NrrdError(m) => fail(m)
+    _ => fail("unexpected error")
+  }
+}
+
+///| T10: ASCII 总数正确但单片错配。
+///| 4 片（默认 subdim，期望各 6 值），实际 7+5+6+6=24=总数。
+///| 逐片计数应拒绝片 0（7≠6）。
+test "list ascii per-chunk count mismatch rejected even when total matches" {
+  let sizes = [2, 3, 4]
+  let names = ["s0.raw", "s1.raw", "s2.raw", "s3.raw"]
+  try {
+    let h = list_hdr(sizes, names, encoding="ascii")
+    let chunks = [
+      ascii_chunk("1 2 3 4 5 6 7"),
+      ascii_chunk("8 9 10 11 12"),
+      ascii_chunk("13 14 15 16 17 18"),
+      ascii_chunk("19 20 21 22 23 24"),
+    ]
+    let err = reassemble_err(chunks, h)
+    assert_true(err.contains("s0.raw"))
+    assert_true(err.contains("expected 6 values"))
+    assert_true(err.contains("got 7"))
+  } catch {
+    @moon-nrrd.NrrdError(m) => fail(m)
+    _ => fail("unexpected error")
+  }
+}
+
+///| T11: ASCII 正常拼接（有尾部换行）不受影响。
+test "list ascii chunks with trailing newline reassemble correctly" {
+  let sizes = [2, 2]
+  let names = ["a.raw", "b.raw"]
+  try {
+    let h = list_hdr(sizes, names, encoding="ascii")
+    let chunks = [
+      ascii_chunk("1 2\n"),
+      ascii_chunk("3 4\n"),
+    ]
+    let err = reassemble_err(chunks, h)
+    assert_eq(err, "")
+  } catch {
+    @moon-nrrd.NrrdError(m) => fail(m)
+    _ => fail("unexpected error")
+  }
+}
+
+///| T12: ASCII 空片拒绝（期望 N 值实得 0）。
+test "list ascii empty chunk rejected" {
+  let sizes = [2, 2]
+  let names = ["a.raw", "b.raw"]
+  try {
+    let h = list_hdr(sizes, names, encoding="ascii")
+    let chunks = [
+      ascii_chunk(""),
+      ascii_chunk("3 4"),
+    ]
+    let err = reassemble_err(chunks, h)
+    assert_true(err.contains("a.raw"))
+    assert_true(err.contains("expected 2 values"))
+    assert_true(err.contains("got 0"))
+  } catch {
+    @moon-nrrd.NrrdError(m) => fail(m)
+    _ => fail("unexpected error")
+  }
+}
