@@ -11,7 +11,7 @@
 
 name = "DDD12345-D/moon-nrrd"
 
-version = "0.2.0"
+version = "0.3.0"
 
 readme = "README.mbt.md"
 
@@ -23,7 +23,7 @@ keywords = ["nrrd", "nhdr", "scientific", "imaging", "voxel", "grid", "teem", "p
 
 preferred_target = "wasm"
 
-description = "Pure MoonBit NRRD read-write library: NRRD0005 header parse, data decode, symmetric serialization (8 numeric types, raw LE/BE + ASCII, attached/detached), and crop/slice data ops with spatial metadata updates"
+description = "Pure MoonBit NRRD read-write library: NRRD0005 header parse, data decode, symmetric serialization (10 numeric types incl. int64/uint64 lossless, raw LE/BE + ASCII, attached/detached/LIST), crop/slice data ops with spatial metadata updates"
 
 import {
   "moonbitlang/x@0.5.7",
