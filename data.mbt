@@ -215,7 +215,7 @@ pub fn crop_meta(
     Some(us) => Some(us.copy())
     None => None
   }
-  NrrdHeader::{
+  NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: h.dimension,
     sizes: size.copy(),
     type_name: h.type_name,
@@ -424,7 +424,7 @@ pub fn slice_meta(
     }
   }
   // space / space_dimension / space_units: world-component, unchanged
-  NrrdHeader::{
+  NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: h.dimension - 1,
     sizes: new_sizes,
     type_name: h.type_name,

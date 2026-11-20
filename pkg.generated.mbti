@@ -16,7 +16,15 @@ pub fn crop_meta(NrrdHeader, Array[Int32], Array[Int32]) -> NrrdHeader raise Nrr
 
 pub fn decode_data(Bytes, NrrdHeader, budget? : Int32) -> Array[Double] raise NrrdError
 
+pub fn decode_int64(Bytes, NrrdHeader, budget? : Int32) -> Array[Int64] raise NrrdError
+
+pub fn decode_uint64(Bytes, NrrdHeader, budget? : Int32) -> Array[UInt64] raise NrrdError
+
 pub fn encode_data(Array[Double], NrrdHeader, budget? : Int32) -> Bytes raise NrrdError
+
+pub fn encode_int64(Array[Int64], NrrdHeader, budget? : Int32) -> Bytes raise NrrdError
+
+pub fn encode_uint64(Array[UInt64], NrrdHeader, budget? : Int32) -> Bytes raise NrrdError
 
 pub fn format_directions(Array[Array[Double]?]) -> String
 
@@ -34,11 +42,23 @@ pub fn format_opt(String?, none_marker? : String) -> String
 
 pub fn format_string_list(Array[String]) -> String
 
+pub fn is_list_header(NrrdHeader) -> Bool
+
+pub fn list_subdim(NrrdHeader) -> Int32
+
+pub fn list_values_per_file(NrrdHeader, Int32) -> Int32 raise NrrdError
+
 pub fn normalize_encoding(String) -> String raise NrrdError
 
 pub fn normalize_type(String) -> String raise NrrdError
 
+pub fn nrrd_item_size(String) -> Int32 raise NrrdError
+
 pub fn parse_header(String) -> NrrdHeader raise NrrdError
+
+pub fn parse_uint64_str(String) -> UInt64?
+
+pub fn reassemble_list_data(Array[Bytes], NrrdHeader) -> Bytes raise NrrdError
 
 pub fn slice_data(NrrdData, Int32, Int32, budget? : Int32) -> NrrdData raise NrrdError
 
@@ -76,6 +96,8 @@ pub(all) struct NrrdHeader {
   content : String?
   line_skip : Int32
   byte_skip : Int32
+  list_filenames : Array[String]?
+  data_file_subdim : Int32?
 }
 
 // Type aliases

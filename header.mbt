@@ -26,6 +26,8 @@ pub(all) struct NrrdHeader {
   content : String?
   line_skip : Int
   byte_skip : Int
+  list_filenames : Array[String]?
+  data_file_subdim : Int?
 }
 
 ///| Header text length budget (G2 v2 §7.2). Enforced both at the
@@ -374,6 +376,13 @@ pub fn normalize_encoding(e : String) -> String raise NrrdError {
 ///| Split file bytes into header text and body (attached data) at the
 ///| single blank line. Handles `\n`, `\r\n` and mixed terminators.
 ///| Enforces the header-length budget before returning (G2 v2 §7.2).
+///| When no blank line is found the entire input is returned as the
+///| header with an empty body (spec §5: "the header is considered
+///| finished at the EOF, or at the blank line following the last
+///| field, whichever comes first"). Detached headers — including
+///| LIST headers whose filenames run to EOF — legitimately have no
+///| body; for attached data the caller will fail later at decode
+///| time when the body is empty but values are expected.
 pub fn split_header_body(data : Bytes) -> (Bytes, Bytes) raise NrrdError {
   let n = data.length()
   let mut line_start = 0
@@ -397,7 +406,11 @@ pub fn split_header_body(data : Bytes) -> (Bytes, Bytes) raise NrrdError {
     }
     i = i + 1
   }
-  raise NrrdError("no blank line separating header and data")
+  // No blank line: header ends at EOF, body empty (spec §5).
+  if n > max_header_bytes() {
+    raise NrrdError("header too large: \{n} bytes")
+  }
+  (data, Bytes::new(0))
 }
 
 ///| Implied dimension of a named space (spec §4 table).
@@ -537,6 +550,21 @@ pub fn validate_header(h : NrrdHeader) -> Unit raise NrrdError {
 ///| Parse an NRRD header text (without the data payload).
 ///| Enforces the header-length budget directly (G2 v2 §7.2: not
 ///| only at the split_header_body entry).
+///| Detect the LIST form of the `data file` descriptor (spec §3):
+///| the descriptor is exactly "LIST" or starts with "LIST " followed
+///| by an optional subdim integer. A single detached file that
+///| happens to be named "LIST" is spelled "./LIST" and does NOT
+///| match.
+fn is_list_desc(desc : String) -> Bool {
+  desc == "LIST" || desc.has_prefix("LIST ")
+}
+
+///| Parse header text (NRRD0005). Handles the LIST form of
+///| `data file:` by collecting subsequent bare filename lines into
+///| `list_filenames` (spec §3: one filename per line after the
+///| LIST field specification, until EOF or a blank line). The LIST
+///| field specification must be the last field in the header —
+///| any `field: desc` line after it is rejected.
 pub fn parse_header(text : String) -> NrrdHeader raise NrrdError {
   if text.length() > max_header_bytes() {
     raise NrrdError("header too large: \{text.length()} bytes")
@@ -557,10 +585,13 @@ pub fn parse_header(text : String) -> NrrdHeader raise NrrdError {
   let mut content : String? = None
   let mut line_skip = 0
   let mut byte_skip = 0
+  let mut list_filenames : Array[String]? = None
+  let mut data_file_subdim : Int? = None
   let n = text.length()
   let mut i = 0
   let mut first = true
   let seen_fields : Array[String] = []
+  let mut collecting_list = false
   while i <= n {
     let mut j = i
     while j < n && char_at(text, j) != '\n' {
@@ -593,6 +624,16 @@ pub fn parse_header(text : String) -> NrrdHeader raise NrrdError {
       break
     }
     if line.has_prefix("#") {
+      continue
+    }
+    if collecting_list {
+      // LIST filename line (spec §3: "one filename per line ... until
+      // the end of file"). Blank lines already broke above; comments
+      // already skipped above; everything else is a bare filename.
+      match list_filenames {
+        Some(arr) => arr.push(line.trim().to_owned())
+        None => ()
+      }
       continue
     }
     let mut colon = -1
@@ -646,7 +687,22 @@ pub fn parse_header(text : String) -> NrrdHeader raise NrrdError {
       "type" => type_name = desc
       "encoding" => encoding = desc
       "endian" => endian = Some(desc.to_lower())
-      "datafile" => data_file = Some(desc)
+      "datafile" => {
+        data_file = Some(desc)
+        if is_list_desc(desc) {
+          // LIST form: parse optional subdim, then collect filenames
+          // from the remaining lines (spec §3).
+          let rest = slice_str(desc, 4, desc.length()).trim().to_owned()
+          if !rest.is_empty() {
+            match parse_int_str(rest) {
+              Some(v) => data_file_subdim = Some(v)
+              None => raise NrrdError("data file LIST: cannot parse subdim '\{rest}'")
+            }
+          }
+          list_filenames = Some([])
+          collecting_list = true
+        }
+      }
       "space" => space = Some(desc)
       "spacedimension" => match parse_int_str(desc) {
         Some(v) => space_dimension = Some(v)
@@ -689,6 +745,8 @@ pub fn parse_header(text : String) -> NrrdHeader raise NrrdError {
     content,
     line_skip,
     byte_skip,
+    list_filenames,
+    data_file_subdim,
   }
   validate_header(h)
   h

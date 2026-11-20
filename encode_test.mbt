@@ -11,7 +11,7 @@ fn enc_hdr(
   data_file~ : String? = None,
   content~ : String? = None,
 ) -> @moon-nrrd.NrrdHeader {
-  @moon-nrrd.NrrdHeader::{
+  @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [n],
     type_name: t,
@@ -135,7 +135,7 @@ test "format_header minimal raw text is canonical" {
 
 ///| format_header -> parse_header preserves every field.
 test "format_header round-trips through parse_header" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 2,
     sizes: [2, 3],
     type_name: "float",
@@ -194,7 +194,7 @@ test "format_header round-trips through parse_header" {
 ///| Quote escaping per spec (only `\"`) round-trips, and the escape
 ///| sequence is really present in the emitted text.
 test "labels quote is escaped and round-trips" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -224,7 +224,7 @@ test "labels quote is escaped and round-trips" {
 ///| Backslash in quoted strings is rejected (no unambiguous spec
 ///| escape; readers disagree on `\\`).
 test "labels backslash is rejected on write" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -248,7 +248,7 @@ test "labels backslash is rejected on write" {
 
 ///| Newline in labels cannot be a single-line field -> rejected.
 test "labels newline is rejected on write" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -274,7 +274,7 @@ test "labels newline is rejected on write" {
 ///| rejected (edge whitespace would not round-trip: both parsers trim).
 test "content newline and edge whitespace are rejected" {
   let mk = fn(c : String) -> @moon-nrrd.NrrdHeader {
-    @moon-nrrd.NrrdHeader::{
+    @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
       dimension: 1,
       sizes: [1],
       type_name: "int8",
@@ -304,7 +304,7 @@ test "content newline and edge whitespace are rejected" {
 ///| the token count or quoting on re-read -> rejected.
 test "kinds whitespace and quote are rejected" {
   let mk = fn(ks : Array[String]) -> @moon-nrrd.NrrdHeader {
-    @moon-nrrd.NrrdHeader::{
+    @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
       dimension: 1,
       sizes: [1],
       type_name: "int8",
@@ -331,7 +331,7 @@ test "kinds whitespace and quote are rejected" {
 ///| data file: bare line string; newlines and edge whitespace rejected.
 test "data file newline and edge whitespace are rejected" {
   let mk = fn(name : String) -> @moon-nrrd.NrrdHeader {
-    @moon-nrrd.NrrdHeader::{
+    @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
       dimension: 1,
       sizes: [1],
       type_name: "int8",
@@ -364,7 +364,7 @@ test "format_header rejects unsupported and inconsistent fields" {
     endian : String?,
     line_skip : Int,
   ) -> @moon-nrrd.NrrdHeader {
-    @moon-nrrd.NrrdHeader::{
+    @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
       dimension: 1,
       sizes: [1],
       type_name: t,
@@ -383,7 +383,7 @@ test "format_header rejects unsupported and inconsistent fields" {
       byte_skip: 0,
     }
   }
-  assert_true(enc_hdr_err(mk("int64", "raw", Some("little"), 0)).contains("excluded"), msg="int64")
+  assert_true(enc_hdr_err(mk("int64", "raw", Some("little"), 0)).contains("Double value carrier"), msg="int64")
   assert_true(enc_hdr_err(mk("block", "raw", Some("little"), 0)).contains("block"), msg="block")
   assert_true(enc_hdr_err(mk("int8", "hex", None, 0)).contains("hex"), msg="hex")
   assert_true(enc_hdr_err(mk("int8", "gzip", None, 0)).contains("gzip"), msg="gzip")
@@ -736,7 +736,7 @@ test "encode budget refusal is real" {
 ///| Dimension product overflow is refused before allocating (this
 ///| is the element-side product pre-check).
 test "dimension product overflow is refused" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 2,
     sizes: [65536, 65536],
     type_name: "double",
@@ -762,7 +762,7 @@ test "dimension product overflow is refused" {
 ///| not wrap Int. Reachable only with a raised budget; a tiny values
 ///| array is enough because the check runs before the length check.
 test "raw byte product overflow is refused" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [536870912], // 2^29
     type_name: "double", // 8 bytes -> 2^32 total
@@ -856,7 +856,7 @@ fn enc_count_sub(hay : String, needle : String) -> Int {
 ///| on supplementary-plane UTF-16 (emoji surrogate pair).
 test "non-ASCII is rejected in every writable string field" {
   let mk_content = fn(c : String) -> @moon-nrrd.NrrdHeader {
-    @moon-nrrd.NrrdHeader::{
+    @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
       dimension: 1,
       sizes: [1],
       type_name: "int8",
@@ -893,7 +893,7 @@ test "non-ASCII is rejected in every writable string field" {
     msg="emoji content: \{em}",
   )
   // data file
-  let h_df = @moon-nrrd.NrrdHeader::{
+  let h_df = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -913,7 +913,7 @@ test "non-ASCII is rejected in every writable string field" {
   }
   assert_true(enc_hdr_err(h_df).contains("non-ASCII"), msg="data file")
   // labels (quoted token path)
-  let h_lb = @moon-nrrd.NrrdHeader::{
+  let h_lb = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -933,7 +933,7 @@ test "non-ASCII is rejected in every writable string field" {
   }
   assert_true(enc_hdr_err(h_lb).contains("non-ASCII"), msg="labels")
   // space units (quoted token path)
-  let h_su = @moon-nrrd.NrrdHeader::{
+  let h_su = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -953,7 +953,7 @@ test "non-ASCII is rejected in every writable string field" {
   }
   assert_true(enc_hdr_err(h_su).contains("non-ASCII"), msg="space units")
   // space
-  let h_sp = @moon-nrrd.NrrdHeader::{
+  let h_sp = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -973,7 +973,7 @@ test "non-ASCII is rejected in every writable string field" {
   }
   assert_true(enc_hdr_err(h_sp).contains("non-ASCII"), msg="space")
   // kinds (bare token path)
-  let h_kd = @moon-nrrd.NrrdHeader::{
+  let h_kd = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",
@@ -1003,7 +1003,7 @@ test "non-ASCII is rejected in every writable string field" {
   )
   // 转义符 policy still holds alongside the ASCII contract:
   // quote is the only escape in quoted tokens; backslash rejected
-  let h_bs = @moon-nrrd.NrrdHeader::{
+  let h_bs = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int8",

@@ -36,7 +36,7 @@ fn main raise {
   let out_dir = args[2]
   // 2x3x2 int16 with full 3D space metadata.
   // value(x,y,z) = 100*x + 10*y + z (first-axis-fastest linear order).
-  let hdr = @nrrd.NrrdHeader::{
+  let hdr = @nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 3,
     sizes: [2, 3, 2],
     type_name: "int16",

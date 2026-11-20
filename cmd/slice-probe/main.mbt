@@ -37,7 +37,7 @@ fn main raise {
   let out_dir = args[2]
   // 3x4x5 double with full 3D space metadata.
   // value(x,y,z) = 100*x + 10*y + z (first-axis-fastest).
-  let hdr = @nrrd.NrrdHeader::{
+  let hdr = @nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 3,
     sizes: [3, 4, 5],
     type_name: "double",

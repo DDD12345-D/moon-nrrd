@@ -62,7 +62,7 @@ fn check_supported_type(t : String) -> Unit raise NrrdError {
     "int8" | "uint8" | "int16" | "uint16" | "int32" | "uint32" | "float" |
     "double" => ()
     "int64" | "uint64" => raise NrrdError(
-      "type '\{t}' excluded from v1: 64-bit integers exceed the Double value carrier",
+      "type '\{t}' uses the Double value carrier which cannot hold 64-bit integers losslessly; use decode_int64/decode_uint64 instead",
     )
     "block" => raise NrrdError("type 'block' is not supported")
     _ => raise NrrdError("unsupported type '\{t}'")

@@ -398,7 +398,7 @@ test "parse_header enforces the header length budget directly" {
 // ---------------------------------------------------------------------------
 
 test "constructed header validates and decodes without parse_header" {
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [2],
     type_name: "int16",
@@ -423,7 +423,7 @@ test "constructed header validates and decodes without parse_header" {
 
 test "constructed invalid header is rejected inside decode_data" {
   // labels count != dimension: decode_data must validate independently
-  let h = @moon-nrrd.NrrdHeader::{
+  let h = @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [1],
     type_name: "int16",
@@ -458,13 +458,13 @@ test "int64/uint64/block types are explicitly rejected" {
   edge_expect_fail(
     edge_hdr("int64", "raw", 1),
     edge_bytes([0, 0, 0, 0, 0, 0, 0, 0]),
-    "excluded from v1",
+    "uses the Double value carrier",
     "int64",
   )
   edge_expect_fail(
     edge_hdr("uint64", "raw", 1),
     edge_bytes([0, 0, 0, 0, 0, 0, 0, 0]),
-    "excluded from v1",
+    "uses the Double value carrier",
     "uint64",
   )
   edge_expect_fail(

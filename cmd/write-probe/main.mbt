@@ -60,7 +60,7 @@ fn cell_header(
   data_file : String?,
   content : String,
 ) -> @nrrd.NrrdHeader {
-  @nrrd.NrrdHeader::{
+  @nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [n],
     type_name: t,
@@ -125,7 +125,7 @@ fn write_multi_sample(out_dir : String) -> Unit raise @nrrd.NrrdError {
     0.0, 100.0, 10.0, 110.0, 20.0, 120.0, // k=0
     1.0, 101.0, 11.0, 111.0, 21.0, 121.0, // k=1
   ]
-  let h = @nrrd.NrrdHeader::{
+  let h = @nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 3,
     sizes: [2, 3, 2],
     type_name: "int16",
@@ -155,7 +155,7 @@ fn write_multi_sample(out_dir : String) -> Unit raise @nrrd.NrrdError {
 ///| per-space counts cannot mask each other.
 fn write_spatial_sample(out_dir : String) -> Unit raise @nrrd.NrrdError {
   let vs = [0.0, -0.0, 1.0, -1.5, 0.1, 2.5]
-  let h = @nrrd.NrrdHeader::{
+  let h = @nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 2,
     sizes: [2, 3],
     type_name: "double",

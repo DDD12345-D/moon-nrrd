@@ -45,7 +45,7 @@ fn wr_hdr(
   data_file : String?,
   content : String,
 ) -> @moon-nrrd.NrrdHeader {
-  @moon-nrrd.NrrdHeader::{
+  @moon-nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 1,
     sizes: [n],
     type_name: t,

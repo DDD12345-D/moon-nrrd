@@ -6,7 +6,7 @@ fn main raise {
   // Values are in file linear order (sizes[0]=x is fastest).
   // value(x,y,z) = 100*x + 10*y + z  → easy to trace.
 
-  let hdr = @nrrd.NrrdHeader::{
+  let hdr = @nrrd.NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: 3,
     sizes: [2, 3, 2],
     type_name: "int16",

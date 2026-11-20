@@ -32,7 +32,7 @@ fn test_header(
   labels~ : Array[String]? = None,
   kinds~ : Array[String]? = None,
 ) -> NrrdHeader {
-  NrrdHeader::{
+  NrrdHeader::{ list_filenames: None, data_file_subdim: None,
     dimension: sizes.length(),
     sizes: sizes.copy(),
     type_name: "float64",
