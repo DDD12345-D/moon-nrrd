@@ -77,7 +77,6 @@ fn i64_roundtrip_err(
     ""
   } catch {
     @moon-nrrd.NrrdError(m) => m
-    _ => "unknown error"
   }
 }
 
@@ -100,7 +99,6 @@ fn u64_roundtrip_err(
     ""
   } catch {
     @moon-nrrd.NrrdError(m) => m
-    _ => "unknown error"
   }
 }
 

@@ -52,7 +52,6 @@ fn reassemble_err(
     ""
   } catch {
     @moon-nrrd.NrrdError(m) => m
-    _ => "unknown error"
   }
 }
 
