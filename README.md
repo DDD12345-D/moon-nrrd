@@ -62,25 +62,21 @@ MoonBit NRRD 读写库。解析 NRRD0005 头部并解码数据负载，也可对
 
 ## 已验证范围与复现命令
 
-从仓库根目录运行（工具链 `zvm-research/toolchain/runtime`）：
+使用已安装的 MoonBit 工具链，从仓库根目录运行：
 
 ```sh
-export MOON_HOME=<repo>/zvm-research/toolchain/runtime
-
-# 案例一：LIST 分片重组（raw + ascii，12 测试）
+# 案例一：LIST 分片重组（raw + ascii，12/12）
 #   覆盖默认 subdim、显式 subdim、slabs、缺片、长度/计数错误、
 #   分片尾无换行、总数正确但单片错配
-$MOON_HOME/bin/moon.exe test --target js -- -k "list"
+moon test --target js list_test.mbt
 
-# 案例二：int64/uint64 无损读写（20 测试）
+# 案例二：int64/uint64 无损读写（20/20）
 #   raw LE/BE + ascii；2^53+1、INT64_MIN、INT64_MAX、UINT64_MAX 逐值往返
-$MOON_HOME/bin/moon.exe test --target js -- -k "int64"
-$MOON_HOME/bin/moon.exe test --target js -- -k "uint64"
-$MOON_HOME/bin/moon.exe test --target js -- -k "parse_uint64"
+moon test --target js int64_test.mbt
 ```
 
-全量测试：`test --target js`（281/281）；`test --target wasm`（281/281）；
-`check --deny-warn` 零告零错。
+全量测试：`moon test --target js`（281/281）；`moon test --target wasm`（281/281）；
+`moon check --deny-warn` 零告零错。
 
 ## 已知口径边界
 

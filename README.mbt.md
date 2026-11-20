@@ -37,25 +37,21 @@ bytes and strings only.
 
 ## Verified scope quick reference
 
-Run from the repository root (toolchain in `zvm-research/toolchain/runtime`):
+Use the installed MoonBit toolchain. Run from the repository root:
 
 ```sh
-export MOON_HOME=<repo>/zvm-research/toolchain/runtime
-
-# 1. LIST sharding reassembly (raw + ascii, 12 tests)
+# 1. LIST sharding reassembly (raw + ascii, 12/12)
 #    default subdim, explicit subdim, slabs, missing file,
 #    wrong chunk size/count, no-trailing-newline boundary
-$MOON_HOME/bin/moon.exe test --target js -- -k "list"
+moon test --target js list_test.mbt
 
-# 2. int64/uint64 lossless round-trip (20 tests)
+# 2. int64/uint64 lossless round-trip (20/20)
 #    raw LE/BE + ascii; 2^53+1, INT64_MIN, INT64_MAX, UINT64_MAX
-$MOON_HOME/bin/moon.exe test --target js -- -k "int64"
-$MOON_HOME/bin/moon.exe test --target js -- -k "uint64"
-$MOON_HOME/bin/moon.exe test --target js -- -k "parse_uint64"
+moon test --target js int64_test.mbt
 ```
 
-Full suite: `$MOON_HOME/bin/moon.exe test --target js` (281/281);
-`--target wasm` (281/281); `check --deny-warn` clean.
+Full suite: `moon test --target js` (281/281);
+`moon test --target wasm` (281/281); `moon check --deny-warn` clean.
 
 ## Planned (not yet implemented)
 
