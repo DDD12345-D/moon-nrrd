@@ -1,28 +1,30 @@
 # moon-nrrd
 
-MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部并解码数据
-负载，也可对称地序列化头部与编码数据负载；值以 `Double` 载体按文件线性序
-（sizes[0] = 最快轴）交换。核心层不做任何文件 IO——组装接口只返回字节/
+MoonBit NRRD 读写库。解析 NRRD0005 头部并解码数据负载，也可对称地
+序列化头部与编码数据负载。≤32 位值以 `Double` 载体按文件线性序
+（sizes[0] = 最快轴）交换；64 位整型走原生 `Int64`/`UInt64` 全整数
+路径（不经 Double）。核心层不做任何文件 IO——组装接口只返回字节/
 字符串，文件名由宿主决定并与头声明保持一致。
 
-## 当前范围（v1）
+## 当前范围
 
 - **类型**：int8 / uint8 / int16 / uint16 / int32 / uint32 / float / double
-  （int64 / uint64 显式拒绝——超出 Double 值载体 2^53）。
-- **编码**：raw（little/big endian）、ascii；attached / detached 数据文件。
-  hex / gzip / bzip2 / block、LIST 式 data file、line/byte skip 显式拒绝。
+  经 `Double` 载体；int64 / uint64 经 `decode_int64` / `decode_uint64` /
+  `encode_int64` / `encode_uint64`（raw LE/BE + ascii，2^53+1、INT64_MIN/
+  MAX、UINT64_MAX 逐值往返位精确已验证）。
+- **编码**：raw（little/big endian）、ascii；attached / detached / LIST
+  多文件数据文件。hex / gzip / bzip2 / block、格式序列、line/byte skip
+  显式拒绝（阶段 B 计划）。
+- **LIST 多文件读取**：`data file: LIST [subdim]`——逐片校验（raw 按字节数
+  / ascii 按 token 数）、分片间空格防粘连、缺片/长度/计数错误拒绝。
 - **读侧**：magic 整行严格比对（仅 `NRRD0005`）；标准字段按别名/大小写
-  归一后唯一（重复即拒，内容相同也拒）；`key:=value` 自定义键按规范允许
-  重复（后值覆盖）。
+  归一后唯一（重复即拒）；`key:=value` 按规范允许重复（后值覆盖）。
 - **写侧**：`format_header` / `encode_data` / `assemble_attached` /
-  `assemble_detached`（无 IO，attached/detached 对称写出，只生成
-  NRRD0005）；`format_keyval_line` 提供 key:=value 规范转义工具。
-- **数据操作**：`crop_data`（保维裁剪，携带真实值子集，同步更新 sizes
-  与 space origin）；`crop_meta`（仅元数据变换）；`slice_data`（降维切片，
-  固定一个轴的 index 并去掉该数组轴，携带真实值子集）；`slice_meta`
-  （仅元数据变换）。
-- **未实现（不计入完成范围）**：空间 API
-  （world=origin+Σidx·dir 换算）。
+  `assemble_detached`（无 IO，attached/detached 对称写出）；
+  `format_keyval_line` 提供 key:=value 规范转义工具。
+- **数据操作**：`crop_data`（保维裁剪）、`slice_data`（降维切片），均携带
+  真实值子集、同步更新空间元数据（Double 载体；64 位数据的 crop/slice
+  待做）。
 
 ## 写侧值策略（G2 v2 §7.1）
 
@@ -58,6 +60,28 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
   携带标准字段，format_header 不回放任何未经校验的字段——按 G2 §3.5
   明确标未支持。
 
+## 已验证范围与复现命令
+
+从仓库根目录运行（工具链 `zvm-research/toolchain/runtime`）：
+
+```sh
+export MOON_HOME=<repo>/zvm-research/toolchain/runtime
+
+# 案例一：LIST 分片重组（raw + ascii，12 测试）
+#   覆盖默认 subdim、显式 subdim、slabs、缺片、长度/计数错误、
+#   分片尾无换行、总数正确但单片错配
+$MOON_HOME/bin/moon.exe test --target js -- -k "list"
+
+# 案例二：int64/uint64 无损读写（20 测试）
+#   raw LE/BE + ascii；2^53+1、INT64_MIN、INT64_MAX、UINT64_MAX 逐值往返
+$MOON_HOME/bin/moon.exe test --target js -- -k "int64"
+$MOON_HOME/bin/moon.exe test --target js -- -k "uint64"
+$MOON_HOME/bin/moon.exe test --target js -- -k "parse_uint64"
+```
+
+全量测试：`test --target js`（281/281）；`test --target wasm`（281/281）；
+`check --deny-warn` 零告零错。
+
 ## 已知口径边界
 
 - **ASCII float32 正确舍入契约**：解析路径为 **decimal → binary32 直接
@@ -75,6 +99,9 @@ MoonBit NRRD 读写库（G3 里程碑：读侧 + 写侧）。解析 NRRD 头部�
   字节。512 MiB 输入上限是宿主建议值，不是 wasm 安全证明。
 - **写侧只生成 NRRD0005**；detached 文件名由宿主指定，核心仅回写
   `data file` 声明，路径安全与"名实一致"是宿主责任。
+- **64 位整型的 crop_data/slice_data 待做**：NrrdData 当前仅携带
+  `Array[Double]`；64 位数据裁剪/切片需扩展载体（读写已验证无损）。
+- **LIST 写出与格式序列读写待做**（阶段 B/C）。
 - 读端 `labels` 解析按规范仅识别 `\"` 转义；pynrrd 用 POSIX shlex（会把
   `\\` 折叠）——含反斜杠的 labels 在两实现间可能不一致（写侧拒绝产生
   此类输出）。

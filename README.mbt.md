@@ -2,25 +2,32 @@
 
 Pure MoonBit NRRD read-write library. Parses NRRD0005 headers and decodes
 data payloads, and symmetrically serializes headers with encoded payloads.
-Values are exchanged as `Double` in file linear order (`sizes[0]` = fastest
-axis). The core layer performs no file IO — assembly APIs return bytes and
-strings only.
+Values ≤32-bit are exchanged as `Double` in file linear order (`sizes[0]` =
+fastest axis); 64-bit integers use native `Int64` / `UInt64` (no Double
+intermediary). The core layer performs no file IO — assembly APIs return
+bytes and strings only.
 
 ## Current scope (v0.2)
 
 - **Types**: int8 / uint8 / int16 / uint16 / int32 / uint32 / float / double
-  (int64 / uint64 explicitly rejected — beyond Double 2^53 value carrier)
-- **Encodings**: raw (little/big endian), ascii; attached / detached data files
+  via `Double` carrier; int64 / uint64 via native `decode_int64` /
+  `decode_uint64` / `encode_int64` / `encode_uint64` (raw LE/BE + ascii,
+  lossless round-trip verified for 2^53+1, INT64_MIN/MAX, UINT64_MAX)
+- **Encodings**: raw (little/big endian), ascii; attached / detached / LIST
+  multi-file data files
 - **Read**: strict magic line match (NRRD0005 only); standard fields normalized
   by alias/case and unique (duplicates rejected); `key:=value` custom keys
   follow the spec (last value wins)
+- **LIST multi-file**: `data file: LIST [subdim]` — per-chunk validation
+  (raw byte count / ascii token count), boundary-safe concatenation, missing
+  file and size mismatch rejection
 - **Write**: `format_header` / `encode_data` / `assemble_attached` /
   `assemble_detached` (no IO, symmetric attached/detached output, NRRD0005);
   `format_keyval_line` provides spec-escaped key:=value tooling
 - **Data ops**: `crop_data` / `crop_meta` (dimension-preserving crop with real
   value subset, space origin shifted) and `slice_data` / `slice_meta`
   (dimension-reducing slice with real value subset), both updating spatial
-  metadata consistently
+  metadata consistently (Double-carrier values; 64-bit data ops planned)
 - **Write strings are ASCII-only** (v1 contract): non-ASCII code points are
   rejected with `NrrdError`, never silently truncated (prevents header
   injection)
@@ -28,9 +35,33 @@ strings only.
   ASCII special-value detection applies to the narrowed stored value (negative
   underflow like -1.0e-50 emits "-0.0", not "0")
 
+## Verified scope quick reference
+
+Run from the repository root (toolchain in `zvm-research/toolchain/runtime`):
+
+```sh
+export MOON_HOME=<repo>/zvm-research/toolchain/runtime
+
+# 1. LIST sharding reassembly (raw + ascii, 12 tests)
+#    default subdim, explicit subdim, slabs, missing file,
+#    wrong chunk size/count, no-trailing-newline boundary
+$MOON_HOME/bin/moon.exe test --target js -- -k "list"
+
+# 2. int64/uint64 lossless round-trip (20 tests)
+#    raw LE/BE + ascii; 2^53+1, INT64_MIN, INT64_MAX, UINT64_MAX
+$MOON_HOME/bin/moon.exe test --target js -- -k "int64"
+$MOON_HOME/bin/moon.exe test --target js -- -k "uint64"
+$MOON_HOME/bin/moon.exe test --target js -- -k "parse_uint64"
+```
+
+Full suite: `$MOON_HOME/bin/moon.exe test --target js` (281/281);
+`--target wasm` (281/281); `check --deny-warn` clean.
+
 ## Planned (not yet implemented)
 
 - world-coordinate API (`world = origin + Σ idx·dir`)
+- 64-bit integer data ops (`crop_data` / `slice_data` on Int64/UInt64 arrays)
+- LIST / format-sequence multi-file writing
 - unknown-field and `key:=value` round-trip preservation
 
 ## Known limitations
@@ -40,8 +71,8 @@ strings only.
   intermediate step); correctly rounded for all decimal tokens up to 64 bytes
 - ASCII numeric token length capped at 64 bytes (implementation limit, not
   spec)
-- Compression (hex/gzip/bzip2/block), LIST multi-file, line/byte skip, and
-  64-bit integers are explicitly rejected in v1
+- Compression (hex/gzip/bzip2/block), format-sequence multi-file, and
+  line/byte skip are explicitly rejected (planned for stage B)
 - NaN payload/signaling bits are not preserved (semantic nan==nan only)
 
 ## Usage
